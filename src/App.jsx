@@ -171,6 +171,7 @@ export default function App() {
         </div>
       </div>
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "40px 32px 80px" }}>
+        {/* 01 · PROJECT OVERVIEW */}
         <SectionHead title="Project Overview" index={0} />
         <TwoCol>
           <Field label="Key Personnel / Project Lead" value={data.keyPersonnel} onChange={v => set("keyPersonnel", v)} placeholder="Enter project lead name" />
@@ -179,7 +180,13 @@ export default function App() {
         <Field label="Subconsultants" value={data.subconsultants} onChange={v => set("subconsultants", v)} type="textarea" placeholder="List all sub-consultants" />
         <Field label="Contract Value" value={data.contractValue} onChange={v => set("contractValue", v)} placeholder="AED" />
         <PageBreak />
-        <SectionHead title="Budget & Financials" index={1} />
+        {/* 02 · PROJECT STATUS */}
+        <SectionHead title="Project Status" index={1} />
+        <Field label="Current Stage & Status" value={data.projectStatus} onChange={v => set("projectStatus", v)} placeholder="Enter current stage" />
+        <ProgressBar value={data.progressPct} onChange={v => set("progressPct", v)} />
+        <PageBreak />
+        {/* 03 · BUDGET & FINANCIALS */}
+        <SectionHead title="Budget & Financials" index={2} />
         <TwoCol><div><div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}><div style={styles.fieldLabel}>Budget Status</div><BudgetStatusBadge value={data.budgetStatus} onChange={v => set("budgetStatus", v)} /></div></div><div /></TwoCol>
         <TwoCol>
           <Field label="Internal Resources Budget" value={data.internalBudget} onChange={v => set("internalBudget", v)} placeholder="AED" />
@@ -193,25 +200,25 @@ export default function App() {
           <Field label="Invoice Due Date" value={data.invoiceDueDate} onChange={v => set("invoiceDueDate", v)} type="date" />
         </TwoCol>
         <PageBreak />
-        <SectionHead title="Payment Status" index={2} />
+        {/* 04 · PAYMENT STATUS */}
+        <SectionHead title="Payment Status" index={3} />
         <TwoCol>
           <Field label="Client Payments" value={data.clientPayments} onChange={v => set("clientPayments", v)} type="textarea" placeholder="Enter invoices paid to date" />
           <Field label="Sub-Consultant Payments" value={data.subsPayments} onChange={v => set("subsPayments", v)} type="textarea" placeholder="Enter subs invoices paid to date" />
         </TwoCol>
         <PageBreak />
-        <SectionHead title="Project Status" index={3} />
-        <Field label="Current Stage & Status" value={data.projectStatus} onChange={v => set("projectStatus", v)} placeholder="Enter current stage" />
-        <ProgressBar value={data.progressPct} onChange={v => set("progressPct", v)} />
-        <PageBreak />
+        {/* 05 · PROGRAM */}
         <SectionHead title="Program" index={4} />
         <ProgramTable rows={data.programRows} onChange={setProgramRow} />
         <PageBreak />
+        {/* 06 · VARIATIONS & RISKS */}
         <SectionHead title="Variations & Risks" index={5} />
         <TwoCol>
           <Field label="Potential Variations - Plan of Action" value={data.potentialVariations} onChange={v => set("potentialVariations", v)} type="textarea" placeholder="Note potential variations" />
           <Field label="Critical Issues & Risks" value={data.criticalIssues} onChange={v => set("criticalIssues", v)} type="textarea" placeholder="Identify critical issues" />
         </TwoCol>
         <PageBreak />
+        {/* 07 · ACTION LIST */}
         <SectionHead title="Action List" index={6} />
         <ActionTable rows={data.currentActions} onChange={(i, field, val) => setActionRow("currentActions", i, field, val)} />
       </div>
