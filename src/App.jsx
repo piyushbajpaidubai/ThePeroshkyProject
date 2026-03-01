@@ -67,8 +67,20 @@ function ProgressBar({ value, onChange }) {
   const color = pct < 30 ? "#f87171" : pct < 70 ? "#fbbf24" : "#34d399";
   return (<div style={{ marginBottom: 14 }}><div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 6 }}><div style={styles.fieldLabel}>Overall Progress</div><input type="number" min={0} max={100} value={value} onChange={e => onChange(e.target.value)} style={{ width: 52, fontSize: 13, border: "none", borderBottom: "1.5px solid #e2e8f0", outline: "none", background: "transparent", textAlign: "right", fontWeight: 700 }} /><span style={{ fontSize: 12, color: "#64748b" }}>%</span></div><div style={{ height: 6, background: "#f1f5f9", borderRadius: 99, overflow: "hidden" }}><div style={{ width: `${pct}%`, height: "100%", background: color, borderRadius: 99, transition: "width 0.4s ease" }} /></div></div>);
 }
+function PageBreak() {
+  return <div style={{ margin: "32px 0", height: "1.5px", background: "#000000" }} />;
+}
 function SectionHead({ title, index }) {
-  return (<div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20, marginTop: index === 0 ? 0 : 10 }}><div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", color: "#94a3b8", textTransform: "uppercase", whiteSpace: "nowrap" }}>{String(index + 1).padStart(2, "0")} · {title}</div><div style={{ flex: 1, height: 1, background: "#e2e8f0" }} /></div>);
+  return (
+    <div style={{ marginBottom: 20 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", color: "#94a3b8", textTransform: "uppercase", whiteSpace: "nowrap" }}>
+          {String(index + 1).padStart(2, "0")} · {title}
+        </div>
+        <div style={{ flex: 1, height: 1, background: "#e2e8f0" }} />
+      </div>
+    </div>
+  );
 }
 function TwoCol({ children }) { return (<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 40px" }}>{children}</div>); }
 function ActionTable({ rows, onChange }) {
@@ -166,6 +178,7 @@ export default function App() {
         </TwoCol>
         <Field label="Subconsultants" value={data.subconsultants} onChange={v => set("subconsultants", v)} type="textarea" placeholder="List all sub-consultants" />
         <Field label="Contract Value" value={data.contractValue} onChange={v => set("contractValue", v)} placeholder="AED" />
+        <PageBreak />
         <SectionHead title="Budget & Financials" index={1} />
         <TwoCol><div><div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}><div style={styles.fieldLabel}>Budget Status</div><BudgetStatusBadge value={data.budgetStatus} onChange={v => set("budgetStatus", v)} /></div></div><div /></TwoCol>
         <TwoCol>
@@ -179,25 +192,30 @@ export default function App() {
           <Field label="Target Invoice Milestone & Value" value={data.targetInvoice} onChange={v => set("targetInvoice", v)} placeholder="Milestone name / AED" />
           <Field label="Invoice Due Date" value={data.invoiceDueDate} onChange={v => set("invoiceDueDate", v)} type="date" />
         </TwoCol>
+        <PageBreak />
         <SectionHead title="Payment Status" index={2} />
         <TwoCol>
           <Field label="Client Payments" value={data.clientPayments} onChange={v => set("clientPayments", v)} type="textarea" placeholder="Enter invoices paid to date" />
           <Field label="Sub-Consultant Payments" value={data.subsPayments} onChange={v => set("subsPayments", v)} type="textarea" placeholder="Enter subs invoices paid to date" />
         </TwoCol>
+        <PageBreak />
         <SectionHead title="Project Status" index={3} />
         <Field label="Current Stage & Status" value={data.projectStatus} onChange={v => set("projectStatus", v)} placeholder="Enter current stage" />
         <ProgressBar value={data.progressPct} onChange={v => set("progressPct", v)} />
+        <PageBreak />
         <SectionHead title="Program" index={4} />
         <ProgramTable rows={data.programRows} onChange={setProgramRow} />
+        <PageBreak />
         <SectionHead title="Variations & Risks" index={5} />
         <TwoCol>
           <Field label="Potential Variations - Plan of Action" value={data.potentialVariations} onChange={v => set("potentialVariations", v)} type="textarea" placeholder="Note potential variations" />
           <Field label="Critical Issues & Risks" value={data.criticalIssues} onChange={v => set("criticalIssues", v)} type="textarea" placeholder="Identify critical issues" />
         </TwoCol>
+        <PageBreak />
         <SectionHead title="Action List" index={6} />
         <ActionTable rows={data.currentActions} onChange={(i, field, val) => setActionRow("currentActions", i, field, val)} />
       </div>
-      <div style={{ borderTop: "1px solid #e2e8f0", padding: "16px 32px", display: "flex", justifyContent: "space-between", alignItems: "center", background: "#ffffff" }}>
+      <div style={{ borderTop: "1.5px solid #000000", padding: "16px 32px", display: "flex", justifyContent: "space-between", alignItems: "center", background: "#ffffff" }}>
         <span style={{ fontSize: 11, color: "#cbd5e1", letterSpacing: "0.06em" }}>DT ARCHITECTURE & DESIGN · CONFIDENTIAL · INTERNAL USE ONLY</span>
         <span style={{ fontSize: 11, color: "#cbd5e1" }}>{new Date().getFullYear()}</span>
       </div>
