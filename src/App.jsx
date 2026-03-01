@@ -27,7 +27,7 @@ const defaultState = {
   reportDate: new Date().toISOString().slice(0, 10),
   keyPersonnel: "", subconsultants: "", contractStatus: "", contractValue: "",
   budgetStatus: "", internalBudget: "", externalBudget: "", availableBudget: "",
-  actualSpent: "", projectStatus: "", progressPct: "", targetInvoice: "",
+  actualSpent: "", invoiceIssued: "", externalSpent: "", projectStatus: "", progressPct: "", targetInvoice: "",
   invoiceDueDate: "", paymentRows: [{ milestone: "", clientStatus: "", subsStatus: "" }, { milestone: "", clientStatus: "", subsStatus: "" }],
   programRows: [
     { stage: "", baseline: "", actual: "" },
@@ -117,6 +117,14 @@ function CombinedPaymentTable({ rows, onChange }) {
   return (<div style={{ marginBottom: 8 }}><table style={{ width: "100%", borderCollapse: "collapse" }}><thead><tr><th style={{ ...styles.th, textAlign: "left", width: "50%" }}>Invoice Milestone</th><th style={{ ...styles.th, textAlign: "center", width: "22%" }}>Client Status</th><th style={{ ...styles.th, textAlign: "center", width: "22%" }}>Sub-Consultant Status</th><th style={{ ...styles.th, width: 32 }}></th></tr></thead><tbody>{rows.map((row, i) => (<tr key={i}><td style={styles.td}><input value={row.milestone} onChange={e => onChange(i, "milestone", e.target.value)} placeholder="e.g. Invoice 01 - Concept Design" style={styles.inlineInput} /></td><td style={{ ...styles.td, textAlign: "center" }}><StatusSelect value={row.clientStatus || ""} onChange={v => onChange(i, "clientStatus", v)} /></td><td style={{ ...styles.td, textAlign: "center" }}><StatusSelect value={row.subsStatus || ""} onChange={v => onChange(i, "subsStatus", v)} /></td><td style={styles.td}><button onClick={() => { const next = rows.filter((_, j) => j !== i); onChange("_replace", null, next); }} style={styles.delBtn}>×</button></td></tr>))}</tbody></table><button onClick={() => onChange("_add", null, null)} style={styles.addBtn}>+ Add row</button></div>);
 }
 
+function CashVarianceIndicator({ invoiceIssued, actualSpent, externalSpent }) {
+  const parse = v => parseFloat((v || "").replace(/[^0-9.-]/g, "")) || 0;
+  const variance = parse(invoiceIssued) - parse(actualSpent) - parse(externalSpent);
+  const isPos = variance >= 0;
+  const isEmpty = !invoiceIssued && !actualSpent && !externalSpent;
+  const formatted = isEmpty ? "—" : (isPos ? "+" : "") + variance.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  return (<div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: isEmpty ? "#f1f5f9" : isPos ? "#dcfce7" : "#fee2e2", color: isEmpty ? "#64748b" : isPos ? "#166534" : "#991b1b", borderRadius: 4, padding: "4px 12px", fontSize: 13, fontWeight: 700 }}>{!isEmpty && <span style={{ fontSize: 11 }}>{isPos ? "▲" : "▼"}</span>}Cash Variance: {formatted}</div>);
+}
 function BalanceIndicator({ available, spent }) {
   const av = parseFloat(available.replace(/[^0-9.-]/g, "")) || 0;
   const sp = parseFloat(spent.replace(/[^0-9.-]/g, "")) || 0;
@@ -211,12 +219,17 @@ export default function App() {
         {!hideBudget && <>
         <TwoCol><div><div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}><div style={styles.fieldLabel}>Budget Status</div><BudgetStatusBadge value={data.budgetStatus} onChange={v => set("budgetStatus", v)} /></div></div><div /></TwoCol>
         <TwoCol>
-          <Field label="Internal Resources Budget" value={data.internalBudget} onChange={v => set("internalBudget", v)} placeholder="AED" />
+          <Field label="Internal Fee" value={data.internalBudget} onChange={v => set("internalBudget", v)} placeholder="AED" />
           <Field label="External Sub-Consultants Budget" value={data.externalBudget} onChange={v => set("externalBudget", v)} placeholder="AED" />
           <Field label="Available Budget To-Date" value={data.availableBudget} onChange={v => set("availableBudget", v)} placeholder="AED" />
           <Field label="Actual Spent To-Date" value={data.actualSpent} onChange={v => set("actualSpent", v)} placeholder="AED" />
         </TwoCol>
         <div style={{ marginBottom: 14 }}><div style={styles.fieldLabel}>Balance To-Date</div><BalanceIndicator available={data.availableBudget} spent={data.actualSpent} /></div>
+        <TwoCol>
+          <Field label="Value of Invoice Issued" value={data.invoiceIssued} onChange={v => set("invoiceIssued", v)} placeholder="AED" />
+          <Field label="External Spent To-Date" value={data.externalSpent} onChange={v => set("externalSpent", v)} placeholder="AED" />
+        </TwoCol>
+        <div style={{ marginBottom: 14 }}><div style={styles.fieldLabel}>Cash Variance</div><CashVarianceIndicator invoiceIssued={data.invoiceIssued} actualSpent={data.actualSpent} externalSpent={data.externalSpent} /></div>
         <TwoCol>
           <Field label="Target Invoice Milestone & Value" value={data.targetInvoice} onChange={v => set("targetInvoice", v)} placeholder="Milestone name / AED" />
           <Field label="Invoice Due Date" value={data.invoiceDueDate} onChange={v => set("invoiceDueDate", v)} type="date" />
