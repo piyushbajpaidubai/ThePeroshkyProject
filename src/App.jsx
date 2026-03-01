@@ -150,6 +150,21 @@ export default function App() {
   const saveTimer = useRef(null);
   useEffect(() => { loadData().then(d => { if (d) setData(d); setLoaded(true); }); }, []);
   useEffect(() => {
+    const style = document.createElement("style");
+    style.id = "dt-print-styles";
+    style.textContent = `
+      @media print {
+        @page { size: A4 portrait; margin: 15mm 12mm; }
+        .no-print { display: none !important; }
+        body { background: #fff !important; }
+        [style*="position: sticky"], [style*="position:sticky"] { position: static !important; box-shadow: none !important; border-bottom: 1px solid #e2e8f0 !important; }
+        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      }
+    `;
+    if (!document.getElementById("dt-print-styles")) document.head.appendChild(style);
+    return () => { const el = document.getElementById("dt-print-styles"); if (el) el.remove(); };
+  }, []);
+  useEffect(() => {
     if (!loaded) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(async () => { setSaving(true); await saveData(data); setSaving(false); setSavedAt(new Date()); }, 800);
@@ -195,6 +210,9 @@ export default function App() {
         <div style={{ fontSize: 11, color: saving ? "#f59e0b" : "#10b981", minWidth: 80, textAlign: "right" }}>
           {saving ? "Saving..." : savedAt ? `Saved ${savedAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}` : "Saved"}
         </div>
+        <button className="no-print" onClick={() => window.print()} style={{ marginLeft: 16, background: "#0f172a", color: "#ffffff", border: "none", borderRadius: 4, padding: "6px 14px", fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}>
+          <span style={{ fontSize: 13 }}>⬇</span> Download PDF
+        </button>
       </div>
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "40px 32px 80px" }}>
         {/* 01 · PROJECT OVERVIEW */}
