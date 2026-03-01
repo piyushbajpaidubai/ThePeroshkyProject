@@ -28,7 +28,7 @@ const defaultState = {
   keyPersonnel: "", subconsultants: "", contractStatus: "", contractValue: "",
   budgetStatus: "", internalBudget: "", externalBudget: "", availableBudget: "",
   actualSpent: "", projectStatus: "", progressPct: "", targetInvoice: "",
-  invoiceDueDate: "", clientPayments: "", subsPayments: "",
+  invoiceDueDate: "", clientPayments: [{ milestone: "", status: "" }, { milestone: "", status: "" }], subsPayments: [{ milestone: "", status: "" }, { milestone: "", status: "" }],
   programRows: [
     { stage: "", baseline: "", actual: "" },
     { stage: "", baseline: "", actual: "" },
@@ -107,7 +107,12 @@ function ActionTable({ rows, onChange }) {
 function ProgramTable({ rows, onChange }) {
   return (<div style={{ marginBottom: 8 }}><table style={{ width: "100%", borderCollapse: "collapse" }}><thead><tr><th style={{ ...styles.th, textAlign: "left", width: "34%" }}>Stage</th><th style={{ ...styles.th, textAlign: "left" }}>Baseline Duration</th><th style={{ ...styles.th, textAlign: "left" }}>Actual Duration</th><th style={{ ...styles.th, width: 32 }}></th></tr></thead><tbody>{rows.map((row, i) => (<tr key={i}><td style={styles.td}><input value={row.stage} onChange={e => onChange(i, "stage", e.target.value)} placeholder="Stage name" style={styles.inlineInput} /></td><td style={styles.td}><input value={row.baseline} onChange={e => onChange(i, "baseline", e.target.value)} placeholder="e.g. 8 weeks" style={styles.inlineInput} /></td><td style={styles.td}><input value={row.actual} onChange={e => onChange(i, "actual", e.target.value)} placeholder="e.g. 10 weeks" style={styles.inlineInput} /></td><td style={styles.td}><button onClick={() => { const next = rows.filter((_, j) => j !== i); onChange("_replace", null, next); }} style={styles.delBtn}>×</button></td></tr>))}</tbody></table><button onClick={() => onChange("_add", null, null)} style={styles.addBtn}>+ Add stage</button></div>);
 }
-function BalanceIndicator({ available, spent }) {
+function PaymentTable({ rows, onChange }) {
+  const statusOptions = ["Paid", "Pending", "Overdue", "Partial"];
+  const statusColors = { Paid: { bg: "#dcfce7", fg: "#166534" }, Pending: { bg: "#fef9c3", fg: "#854d0e" }, Overdue: { bg: "#fee2e2", fg: "#991b1b" }, Partial: { bg: "#dbeafe", fg: "#1e40af" }, "": { bg: "#f1f5f9", fg: "#64748b" } };
+  return (<div style={{ marginBottom: 8 }}><table style={{ width: "100%", borderCollapse: "collapse" }}><thead><tr><th style={{ ...styles.th, textAlign: "left", width: "65%" }}>Invoice Milestone</th><th style={{ ...styles.th, textAlign: "center" }}>Status</th><th style={{ ...styles.th, width: 32 }}></th></tr></thead><tbody>{rows.map((row, i) => { const c = statusColors[row.status] || statusColors[""]; return (<tr key={i}><td style={styles.td}><input value={row.milestone} onChange={e => onChange(i, "milestone", e.target.value)} placeholder="e.g. Invoice 01 - Concept Design" style={styles.inlineInput} /></td><td style={{ ...styles.td, textAlign: "center" }}><div style={{ position: "relative", display: "inline-block" }}><select value={row.status} onChange={e => onChange(i, "status", e.target.value)} style={{ appearance: "none", background: c.bg, color: c.fg, border: "none", borderRadius: 4, padding: "3px 24px 3px 10px", fontSize: 12, fontWeight: 600, cursor: "pointer", outline: "none" }}><option value="">Select</option>{statusOptions.map(o => <option key={o}>{o}</option>)}</select><span style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", fontSize: 10, color: c.fg }}>▾</span></div></td><td style={styles.td}><button onClick={() => { const next = rows.filter((_, j) => j !== i); onChange("_replace", null, next); }} style={styles.delBtn}>×</button></td></tr>); })}</tbody></table><button onClick={() => onChange("_add", null, null)} style={styles.addBtn}>+ Add row</button></div>);
+}
+function BalanceIndicator(function BalanceIndicator({ available, spent }) {
   const av = parseFloat(available.replace(/[^0-9.-]/g, "")) || 0;
   const sp = parseFloat(spent.replace(/[^0-9.-]/g, "")) || 0;
   const balance = av - sp; const isPos = balance >= 0;
@@ -149,6 +154,13 @@ export default function App() {
     setData(prev => {
       if (i === "_replace") return { ...prev, [key]: val };
       if (i === "_add") return { ...prev, [key]: [...prev[key], { action: "", owner: "", status: "" }] };
+      return { ...prev, [key]: prev[key].map((r, j) => j === i ? { ...r, [field]: val } : r) };
+    });
+  }, []);
+  const setPaymentRow = useCallback((key, i, field, val) => {
+    setData(prev => {
+      if (i === "_replace") return { ...prev, [key]: val };
+      if (i === "_add") return { ...prev, [key]: [...prev[key], { milestone: "", status: "" }] };
       return { ...prev, [key]: prev[key].map((r, j) => j === i ? { ...r, [field]: val } : r) };
     });
   }, []);
@@ -208,10 +220,14 @@ export default function App() {
         <PageBreak />
         {/* 04 · PAYMENT STATUS */}
         <SectionHead title="Payment Status" index={3} />
-        <TwoCol>
-          <Field label="Client Payments" value={data.clientPayments} onChange={v => set("clientPayments", v)} type="textarea" placeholder="Enter invoices paid to date" />
-          <Field label="Sub-Consultant Payments" value={data.subsPayments} onChange={v => set("subsPayments", v)} type="textarea" placeholder="Enter subs invoices paid to date" />
-        </TwoCol>
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: "#94a3b8", textTransform: "uppercase", marginBottom: 10 }}>Client Payments</div>
+          <PaymentTable rows={data.clientPayments} onChange={(i, field, val) => setPaymentRow("clientPayments", i, field, val)} />
+        </div>
+        <div style={{ marginBottom: 8 }}>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: "#94a3b8", textTransform: "uppercase", marginBottom: 10 }}>Sub-Consultant Payments</div>
+          <PaymentTable rows={data.subsPayments} onChange={(i, field, val) => setPaymentRow("subsPayments", i, field, val)} />
+        </div>
         <PageBreak />
         {/* 05 · PROGRAM */}
         <SectionHead title="Program" index={4} />
