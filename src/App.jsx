@@ -36,14 +36,9 @@ const defaultState = {
   ],
   potentialVariations: "", criticalIssues: "",
   currentActions: [
-    { action: "", owner: "", date: "", status: "" },
-    { action: "", owner: "", date: "", status: "" },
-    { action: "", owner: "", date: "", status: "" },
-  ],
-  nextActions: [
-    { action: "", owner: "", date: "", status: "" },
-    { action: "", owner: "", date: "", status: "" },
-    { action: "", owner: "", date: "", status: "" },
+    { action: "", owner: "", status: "" },
+    { action: "", owner: "", status: "" },
+    { action: "", owner: "", status: "" },
   ],
 };
 function Field({ label, value, onChange, type = "text", placeholder = "", mono = false }) {
@@ -76,19 +71,17 @@ function SectionHead({ title, index }) {
   return (<div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20, marginTop: index === 0 ? 0 : 10 }}><div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", color: "#94a3b8", textTransform: "uppercase", whiteSpace: "nowrap" }}>{String(index + 1).padStart(2, "0")} · {title}</div><div style={{ flex: 1, height: 1, background: "#e2e8f0" }} /></div>);
 }
 function TwoCol({ children }) { return (<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 40px" }}>{children}</div>); }
-function ActionTable({ rows, onChange, label }) {
+function ActionTable({ rows, onChange }) {
   return (
     <div style={{ marginBottom: 8 }}>
-      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: "#94a3b8", textTransform: "uppercase", marginBottom: 10 }}>{label}</div>
       <table style={{ width: "100%", borderCollapse: "collapse" }}>
-        <thead><tr><th style={styles.th}>#</th><th style={{ ...styles.th, width: "45%", textAlign: "left" }}>Action</th><th style={styles.th}>Owner</th><th style={styles.th}>Date</th><th style={styles.th}>Status</th><th style={{ ...styles.th, width: 32 }}></th></tr></thead>
+        <thead><tr><th style={styles.th}>#</th><th style={{ ...styles.th, width: "60%", textAlign: "left" }}>Action</th><th style={styles.th}>Owner</th><th style={styles.th}>Status</th><th style={{ ...styles.th, width: 32 }}></th></tr></thead>
         <tbody>
           {rows.map((row, i) => (
             <tr key={i}>
               <td style={styles.tdNum}>{String(i + 1).padStart(2, "0")}</td>
               <td style={styles.td}><input value={row.action} onChange={e => onChange(i, "action", e.target.value)} placeholder="Enter action item..." style={styles.inlineInput} /></td>
               <td style={styles.td}><input value={row.owner} onChange={e => onChange(i, "owner", e.target.value)} placeholder="Name" style={{ ...styles.inlineInput, textAlign: "center" }} /></td>
-              <td style={styles.td}><input type="date" value={row.date} onChange={e => onChange(i, "date", e.target.value)} style={{ ...styles.inlineInput, textAlign: "center", fontSize: 11 }} /></td>
               <td style={styles.td}><TrafficLight value={row.status || ""} onChange={v => onChange(i, "status", v)} /></td>
               <td style={styles.td}><button onClick={() => { const next = rows.filter((_, j) => j !== i); onChange("_replace", null, next); }} style={styles.delBtn}>×</button></td>
             </tr>
@@ -142,7 +135,7 @@ export default function App() {
   const setActionRow = useCallback((key, i, field, val) => {
     setData(prev => {
       if (i === "_replace") return { ...prev, [key]: val };
-      if (i === "_add") return { ...prev, [key]: [...prev[key], { action: "", owner: "", date: "", status: "" }] };
+      if (i === "_add") return { ...prev, [key]: [...prev[key], { action: "", owner: "", status: "" }] };
       return { ...prev, [key]: prev[key].map((r, j) => j === i ? { ...r, [field]: val } : r) };
     });
   }, []);
@@ -202,10 +195,7 @@ export default function App() {
           <Field label="Critical Issues & Risks" value={data.criticalIssues} onChange={v => set("criticalIssues", v)} type="textarea" placeholder="Identify critical issues" />
         </TwoCol>
         <SectionHead title="Action List" index={6} />
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 40px" }}>
-          <ActionTable label="This Week's Actions" rows={data.currentActions} onChange={(i, field, val) => setActionRow("currentActions", i, field, val)} />
-          <ActionTable label="Next Week's Actions" rows={data.nextActions} onChange={(i, field, val) => setActionRow("nextActions", i, field, val)} />
-        </div>
+        <ActionTable rows={data.currentActions} onChange={(i, field, val) => setActionRow("currentActions", i, field, val)} />
       </div>
       <div style={{ borderTop: "1px solid #e2e8f0", padding: "16px 32px", display: "flex", justifyContent: "space-between", alignItems: "center", background: "#ffffff" }}>
         <span style={{ fontSize: 11, color: "#cbd5e1", letterSpacing: "0.06em" }}>DT ARCHITECTURE & DESIGN · CONFIDENTIAL · INTERNAL USE ONLY</span>
