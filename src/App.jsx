@@ -127,6 +127,7 @@ export default function App() {
   const [data, setData] = useState(defaultState);
   const [loaded, setLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [hideBudget, setHideBudget] = useState(false);
   const [savedAt, setSavedAt] = useState(null);
   const saveTimer = useRef(null);
   useEffect(() => { loadData().then(d => { if (d) setData(d); setLoaded(true); }); }, []);
@@ -155,7 +156,7 @@ export default function App() {
   return (
     <div style={{ minHeight: "100vh", background: "#f8fafc", fontFamily: "'DM Sans', system-ui, sans-serif", color: "#0f172a" }}>
       <div style={{ position: "sticky", top: 0, zIndex: 100, background: "#ffffff", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", padding: "0 32px", height: 52, gap: 20 }}>
-        <div style={{ fontWeight: 800, fontSize: 15, letterSpacing: "0.05em", color: "#0f172a", borderRight: "1px solid #e2e8f0", paddingRight: 20, marginRight: 4 }}>DT</div>
+        <div style={{ fontWeight: 800, fontSize: 15, letterSpacing: "0.05em", color: "#0f172a", borderRight: "1px solid #e2e8f0", paddingRight: 20, marginRight: 4 }}>DesignTomorrow</div>
         <input value={data.projectCode} onChange={e => set("projectCode", e.target.value)} placeholder="PROJECT CODE" style={{ ...navInput, width: 110, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }} />
         <span style={{ color: "#e2e8f0" }}>·</span>
         <input value={data.projectName} onChange={e => set("projectName", e.target.value)} placeholder="Project Name" style={{ ...navInput, width: 200 }} />
@@ -186,7 +187,11 @@ export default function App() {
         <ProgressBar value={data.progressPct} onChange={v => set("progressPct", v)} />
         <PageBreak />
         {/* 03 · BUDGET & FINANCIALS */}
-        <SectionHead title="Budget & Financials" index={2} />
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+          <SectionHead title="Budget & Financials" index={2} />
+          <button onClick={() => setHideBudget(h => !h)} style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", background: "none", border: "1px solid #e2e8f0", borderRadius: 4, color: "#94a3b8", cursor: "pointer", padding: "3px 10px", marginBottom: 20 }}>{hideBudget ? "Show" : "Hide"}</button>
+        </div>
+        {!hideBudget && <>
         <TwoCol><div><div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}><div style={styles.fieldLabel}>Budget Status</div><BudgetStatusBadge value={data.budgetStatus} onChange={v => set("budgetStatus", v)} /></div></div><div /></TwoCol>
         <TwoCol>
           <Field label="Internal Resources Budget" value={data.internalBudget} onChange={v => set("internalBudget", v)} placeholder="AED" />
@@ -199,6 +204,7 @@ export default function App() {
           <Field label="Target Invoice Milestone & Value" value={data.targetInvoice} onChange={v => set("targetInvoice", v)} placeholder="Milestone name / AED" />
           <Field label="Invoice Due Date" value={data.invoiceDueDate} onChange={v => set("invoiceDueDate", v)} type="date" />
         </TwoCol>
+        </>}
         <PageBreak />
         {/* 04 · PAYMENT STATUS */}
         <SectionHead title="Payment Status" index={3} />
