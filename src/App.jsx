@@ -9,7 +9,7 @@ async function loadData() {
     const parsed = {};
     for (const [k, v] of Object.entries(data)) {
       try { parsed[k] = JSON.parse(v); } catch { parsed[k] = v; }
-    }h
+    }
     return parsed;
   } catch { return null; }
 }
@@ -65,7 +65,7 @@ function TrafficLight({ value, onChange }) {
 function ProgressBar({ value, onChange }) {
   const pct = Math.min(100, Math.max(0, parseInt(value) || 0));
   const color = pct < 30 ? "#f87171" : pct < 70 ? "#fbbf24" : "#34d399";
-  return (<div style={{ marginBottom: 14 }}><div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 6 }}><div style={styles.fieldLabel}>Overall Progress</div><input type="number" min={0} max={100} value={value} onChange={e => onChange(e.target.value)} style={{ width: 52, fontSize: 13, border: "none", borderBottom: "1.5px solid #e2e8f0", outline: "none", background: "transparent", textAlign: "right", fontWeight: 700 }} /><span style={{ fontSize: 12, color: "#64748b" }}>%</span></div><div style={{ height: 6, background: "#f1f5f9", borderRadius: 99, overflow: "hidden" }}><div style={{ width: `${pct}%`, height: "100%", background: color, borderRadius: 99, transition: "width 0.4s ease" }} /></div></div>);
+  return (<div style={{ marginBottom: 14 }}><div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 6 }}><div style={{...styles.fieldLabel, color: "#000000"}}>Overall Progress</div><input type="number" min={0} max={100} value={value} onChange={e => onChange(e.target.value)} style={{ width: 52, fontSize: 13, border: "none", borderBottom: "1.5px solid #e2e8f0", outline: "none", background: "transparent", textAlign: "right", fontWeight: 700 }} /><span style={{ fontSize: 12, color: "#64748b" }}>%</span></div><div style={{ height: 6, background: "#f1f5f9", borderRadius: 99, overflow: "hidden" }}><div style={{ width: `${pct}%`, height: "100%", background: color, borderRadius: 99, transition: "width 0.4s ease" }} /></div></div>);
 }
 function PageBreak() {
   return <div style={{ margin: "32px 0", borderTop: "1.5px dotted #000000" }} />;
