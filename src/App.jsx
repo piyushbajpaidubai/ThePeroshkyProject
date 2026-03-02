@@ -251,7 +251,7 @@ export default function App() {
         {!hideBudget && <>
         <TwoCol><div><div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}><div style={styles.fieldLabel}>Budget Status</div><BudgetStatusBadge value={data.budgetStatus} onChange={v => set("budgetStatus", v)} /></div></div><div /></TwoCol>
         <TwoCol>
-          <Field label="Internal Fee" value={data.internalBudget} onChange={v => set("internalBudget", v)} placeholder="AED" />
+          <Field label="Internal Budget" value={data.internalBudget} onChange={v => set("internalBudget", v)} placeholder="AED" />
           <Field label="External Sub-Consultants Budget" value={data.externalBudget} onChange={v => set("externalBudget", v)} placeholder="AED" />
           <Field label="Available Budget To-Date" value={data.availableBudget} onChange={v => set("availableBudget", v)} placeholder="AED" />
           <Field label="Actual Spent To-Date" value={data.actualSpent} onChange={v => set("actualSpent", v)} placeholder="AED" />
