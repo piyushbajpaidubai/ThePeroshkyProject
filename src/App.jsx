@@ -132,15 +132,14 @@ function BalanceIndicator({ available, spent }) {
   const formatted = balance === 0 ? "—" : (isPos ? "+" : "") + balance.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
   return (<div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: balance === 0 ? "#f1f5f9" : isPos ? "#dcfce7" : "#fee2e2", color: balance === 0 ? "#64748b" : isPos ? "#166534" : "#991b1b", borderRadius: 4, padding: "4px 12px", fontSize: 13, fontWeight: 700 }}>{balance !== 0 && <span style={{ fontSize: 11 }}>{isPos ? "▲" : "▼"}</span>}Balance: {formatted}</div>);
 }
-function CPIIndicator({ internalBudget, actualSpent }) {
+function CPIIndicator({ contractValue, progressPct, externalSpent, actualSpent }) {
   const parse = v => parseFloat((v || "").replace(/[^0-9.-]/g, "")) || 0;
-  const fee = parse(internalBudget);
-  const spent = parse(actualSpent);
-  const isEmpty = !internalBudget && !actualSpent;
-  const cpi = (!isEmpty && spent !== 0) ? (fee / spent) : null;
+  const earned = parse(contractValue) * (parse(progressPct) / 100);
+  const totalSpent = parse(externalSpent) + parse(actualSpent);
+  const isEmpty = !contractValue && !progressPct && !externalSpent && !actualSpent;
+  const cpi = (!isEmpty && totalSpent !== 0) ? (earned / totalSpent) : null;
   const formatted = cpi === null ? "—" : cpi.toFixed(2);
   const isGood = cpi !== null && cpi >= 1;
-  const isBad = cpi !== null && cpi < 1;
   return (<div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: cpi === null ? "#f1f5f9" : isGood ? "#dcfce7" : "#fee2e2", color: cpi === null ? "#64748b" : isGood ? "#166534" : "#991b1b", borderRadius: 4, padding: "4px 12px", fontSize: 13, fontWeight: 700 }}>{cpi !== null && <span style={{ fontSize: 11 }}>{isGood ? "▲" : "▼"}</span>}CPI: {formatted}</div>);
 } const styles = {
   fieldLabel: { fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "#94a3b8", textTransform: "uppercase", marginBottom: 4 },
@@ -261,7 +260,7 @@ export default function App() {
           <Field label="Value of Invoice Issued" value={data.invoiceIssued} onChange={v => set("invoiceIssued", v)} placeholder="AED" />
           <Field label="External Spent To-Date" value={data.externalSpent} onChange={v => set("externalSpent", v)} placeholder="AED" />
         </TwoCol>
-        <div style={{ marginBottom: 14 }}><div style={styles.fieldLabel}>Cash Variance</div><CashVarianceIndicator invoiceIssued={data.invoiceIssued} actualSpent={data.actualSpent} externalSpent={data.externalSpent} /></div><div style={{ marginBottom: 14 }}><div style={styles.fieldLabel}>CPI (Cost Performance Index)</div><CPIIndicator internalBudget={data.internalBudget} actualSpent={data.actualSpent} /></div>
+        <div style={{ marginBottom: 14 }}><div style={styles.fieldLabel}>Cash Variance</div><CashVarianceIndicator invoiceIssued={data.invoiceIssued} actualSpent={data.actualSpent} externalSpent={data.externalSpent} /></div><div style={{ marginBottom: 14 }}><div style={styles.fieldLabel}>CPI (Cost Performance Index)</div><CPIIndicator contractValue={data.contractValue} progressPct={data.progressPct} externalSpent={data.externalSpent} actualSpent={data.actualSpent} /></div>
         </>}
         <PageBreak />
         {/* 04 · PAYMENT STATUS */}
