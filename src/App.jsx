@@ -253,10 +253,10 @@ export default function App() {
         <TwoCol>
           <Field label="Internal Budget" value={data.internalBudget} onChange={v => set("internalBudget", v)} placeholder="AED" />
           <Field label="External Sub-Consultants Budget" value={data.externalBudget} onChange={v => set("externalBudget", v)} placeholder="AED" />
-          <Field label="Available Budget To-Date" value={data.availableBudget} onChange={v => set("availableBudget", v)} placeholder="AED" />
+          <div style={{ marginBottom: 14 }}><div style={styles.fieldLabel}>Available Budget To-Date</div><div style={{ fontSize: 13, color: "#0f172a", padding: "4px 0", borderBottom: "1.5px solid #e2e8f0", fontWeight: 600 }}>{(() => { const pct = parseFloat((data.progressPct || "0")) || 0; const budget = parseFloat((data.internalBudget || "").replace(/[^0-9.-]/g, "")) || 0; const val = (pct / 100) * budget; return (pct === 0 && budget === 0) ? "AED" : "AED " + val.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 }); })()}</div></div>
           <Field label="Actual Spent To-Date" value={data.actualSpent} onChange={v => set("actualSpent", v)} placeholder="AED" />
         </TwoCol>
-        <div style={{ marginBottom: 14 }}><div style={styles.fieldLabel}>Balance To-Date</div><BalanceIndicator available={data.availableBudget} spent={data.actualSpent} /></div>
+        <div style={{ marginBottom: 14 }}><div style={styles.fieldLabel}>Balance To-Date</div><BalanceIndicator available={String((parseFloat(data.progressPct || "0") / 100) * (parseFloat((data.internalBudget || "").replace(/[^0-9.-]/g, "")) || 0))} spent={data.actualSpent} /></div>
         <TwoCol>
           <Field label="Value of Invoice Issued" value={data.invoiceIssued} onChange={v => set("invoiceIssued", v)} placeholder="AED" />
           <Field label="External Spent To-Date" value={data.externalSpent} onChange={v => set("externalSpent", v)} placeholder="AED" />
