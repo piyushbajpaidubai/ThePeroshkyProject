@@ -34,7 +34,7 @@ const defaultState = {
     { stage: "", baseline: "", actual: "" },
     { stage: "", baseline: "", actual: "" },
   ],
-  potentialVariations: "", criticalIssues: "",
+  potentialVariations: "", criticalIssues: [{ issue: "", status: "" }, { issue: "", status: "" }, { issue: "", status: "" }],
   currentActions: [
     { action: "", owner: "", status: "" },
     { action: "", owner: "", status: "" },
@@ -141,7 +141,32 @@ function CPIIndicator({ contractValue, progressPct, externalSpent, actualSpent }
   const formatted = cpi === null ? "—" : cpi.toFixed(2);
   const isGood = cpi !== null && cpi >= 1;
   return (<div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: cpi === null ? "#f1f5f9" : isGood ? "#dcfce7" : "#fee2e2", color: cpi === null ? "#64748b" : isGood ? "#166534" : "#991b1b", borderRadius: 4, padding: "4px 12px", fontSize: 13, fontWeight: 700 }}>{cpi !== null && <span style={{ fontSize: 11 }}>{isGood ? "▲" : "▼"}</span>}CPI: {formatted}</div>);
-} const styles = {
+} function CriticalIssuesTable({ rows, onChange }) {
+  return (
+    <div style={{ marginBottom: 8 }}>
+      <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <thead><tr>
+          <th style={styles.th}>#</th>
+          <th style={{ ...styles.th, width: "75%", textAlign: "left" }}>Issue / Risk</th>
+          <th style={styles.th}>Status</th>
+          <th style={{ ...styles.th, width: 32 }}></th>
+        </tr></thead>
+        <tbody>
+          {rows.map((row, i) => (
+            <tr key={i}>
+              <td style={styles.tdNum}>{String(i + 1).padStart(2, "0")}</td>
+              <td style={styles.td}><input value={row.issue} onChange={e => onChange(i, "issue", e.target.value)} placeholder="Describe issue or risk..." style={styles.inlineInput} /></td>
+              <td style={styles.td}><TrafficLight value={row.status || ""} onChange={v => onChange(i, "status", v)} /></td>
+              <td style={styles.td}><button onClick={() => { const next = rows.filter((_, j) => j !== i); onChange("_replace", null, next); }} style={styles.delBtn}>×</button></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <button onClick={() => onChange("_add", null, null)} style={styles.addBtn}>+ Add row</button>
+    </div>
+  );
+}
+const styles = {
   fieldLabel: { fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "#94a3b8", textTransform: "uppercase", marginBottom: 4 },
   th: { fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "#94a3b8", textTransform: "uppercase", borderBottom: "1px solid #e2e8f0", padding: "0 8px 8px 8px", textAlign: "center" },
   td: { borderBottom: "1px solid #f1f5f9", padding: "4px 8px", verticalAlign: "middle" },
@@ -201,7 +226,14 @@ export default function App() {
       return { ...prev, paymentRows: prev.paymentRows.map((r, j) => j === i ? { ...r, [field]: val } : r) };
     });
   }, []);
-  if (!loaded) return (<div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", background: "#f8fafc" }}><div style={{ fontSize: 13, color: "#94a3b8" }}>Loading...</div></div>);
+  const setCriticalRow = useCallback((i, field, val) => {
+    setData(prev => {
+      if (i === "_replace") return { ...prev, criticalIssues: val };
+      if (i === "_add") return { ...prev, criticalIssues: [...prev.criticalIssues, { issue: "", status: "" }] };
+      return { ...prev, criticalIssues: prev.criticalIssues.map((r, j) => j === i ? { ...r, [field]: val } : r) };
+    });
+  }, []);
+    if (!loaded) return (<div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", background: "#f8fafc" }}><div style={{ fontSize: 13, color: "#94a3b8" }}>Loading...</div></div>);
   return (
     <div style={{ minHeight: "100vh", background: "#f8fafc", fontFamily: "'DM Sans', system-ui, sans-serif", color: "#0f172a" }}>
       <div style={{ position: "sticky", top: 0, zIndex: 100, background: "#ffffff", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", padding: "0 32px", height: 52, gap: 20 }}>
@@ -275,7 +307,7 @@ export default function App() {
         <SectionHead title="Variations & Risks" index={5} />
         <TwoCol>
           <Field label="Potential Variations - Plan of Action" value={data.potentialVariations} onChange={v => set("potentialVariations", v)} type="textarea" placeholder="Note potential variations" />
-          <Field label="Critical Issues & Risks" value={data.criticalIssues} onChange={v => set("criticalIssues", v)} type="textarea" placeholder="Identify critical issues" />
+          <div><div style={styles.fieldLabel}>Critical Issues &amp; Risks</div><CriticalIssuesTable rows={data.criticalIssues} onChange={(i, field, val) => setCriticalRow(i, field, val)} /></div>
         </TwoCol>
         <PageBreak />
         {/* 07 · ACTION LIST */}
