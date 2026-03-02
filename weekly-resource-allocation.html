@@ -1,1680 +1,779 @@
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
-
   <meta charset="UTF-8" />
-
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
   <title>DT · Weekly Resource Allocation</title>
-
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet" />
-
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
   <style>
-
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     body { font-family: 'DM Sans', 'IBM Plex Sans', system-ui, sans-serif; background: #f8fafc; color: #0f172a; }
-
     input:focus, textarea:focus, select:focus { outline: none; }
-
     input[type=number]::-webkit-inner-spin-button,
-
     input[type=number]::-webkit-outer-spin-button { opacity: 0.4; }
-
     select option { background: #fff; color: #0f172a; font-weight: 400; }
-
     ::-webkit-scrollbar { height: 5px; width: 5px; }
-
     ::-webkit-scrollbar-track { background: #f1f5f9; }
-
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
-
     @media print {
-
       .no-print { display: none !important; }
-
       body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-
       @page { size: A3 landscape; margin: 8mm; }
-
       .page-col { break-inside: avoid; }
-
     }
-
   </style>
-
 </head>
-
 <body>
-
   <div id="root"></div>
 
-
-
   <script type="text/babel">
-
     const { useState, useEffect, useCallback, useMemo, useRef } = React;
 
-
-
     // ── CONSTANTS ────────────────────────────────────────────────────────────────
-
     const STORAGE_KEY = "dt-resource-allocation-v2";
-
     const DAYS = ["mon", "tue", "wed", "thu", "fri"];
-
     const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri"];
 
-
-
     // ── DATE HELPERS ─────────────────────────────────────────────────────────────
-
     function getMonday(dateStr) {
-
       const d = new Date(dateStr + "T00:00:00");
-
       const day = d.getDay();
-
       d.setDate(d.getDate() - day + (day === 0 ? -6 : 1));
-
       return d.toISOString().slice(0, 10);
-
     }
-
     function addDays(dateStr, n) {
-
       const d = new Date(dateStr + "T00:00:00");
-
       d.setDate(d.getDate() + n);
-
       return d.toISOString().slice(0, 10);
-
     }
-
     function fmtShort(dateStr) {
-
       const d = new Date(dateStr + "T00:00:00");
-
       return d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
-
     }
-
     function fmtFull(dateStr) {
-
       const d = new Date(dateStr + "T00:00:00");
-
       return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
-
     }
-
     function getWeekNum(dateStr) {
-
       const d = new Date(dateStr + "T00:00:00");
-
       const yearStart = new Date(d.getFullYear(), 0, 1);
-
       return Math.ceil(((d - yearStart) / 86400000 + yearStart.getDay() + 1) / 7);
-
     }
-
-
 
     // ── DEFAULT STATE ────────────────────────────────────────────────────────────
-
     const todayStr = new Date().toISOString().slice(0, 10);
-
     const DEFAULT = {
-
       weekStart: getMonday(todayStr),
-
       department: "",
-
       capacityPerDay: 8,
-
       projects: [
-
         { id: 1, code: "", name: "", lead: "", status: "Active" },
-
         { id: 2, code: "", name: "", lead: "", status: "Active" },
-
         { id: 3, code: "", name: "", lead: "", status: "Active" },
-
       ],
-
       members: [
-
         { id: 1, name: "", role: "" },
-
         { id: 2, name: "", role: "" },
-
         { id: 3, name: "", role: "" },
-
         { id: 4, name: "", role: "" },
-
       ],
-
       allocations: [
-
         { id: 1, memberId: 1, projectId: 1, mon: "", tue: "", wed: "", thu: "", fri: "", notes: "" },
-
         { id: 2, memberId: 2, projectId: 1, mon: "", tue: "", wed: "", thu: "", fri: "", notes: "" },
-
         { id: 3, memberId: 3, projectId: 2, mon: "", tue: "", wed: "", thu: "", fri: "", notes: "" },
-
         { id: 4, memberId: 4, projectId: 2, mon: "", tue: "", wed: "", thu: "", fri: "", notes: "" },
-
       ],
-
       leaveNotes: "",
-
       bottlenecks: "",
-
       actions: [
-
         { action: "", owner: "" },
-
         { action: "", owner: "" },
-
         { action: "", owner: "" },
-
       ],
-
     };
-
-
 
     function getMaxId(state) {
-
       let max = 100;
-
       [...(state.projects || []), ...(state.members || []), ...(state.allocations || [])].forEach(x => {
-
         if (x.id > max) max = x.id;
-
       });
-
       return max + 1;
-
     }
-
-
 
     // ── STYLE TOKENS ─────────────────────────────────────────────────────────────
-
     const S = {
-
       fieldLabel: {
-
         fontSize: 10, fontWeight: 700, letterSpacing: "0.08em",
-
         color: "#94a3b8", textTransform: "uppercase", marginBottom: 4,
-
       },
-
       th: {
-
         fontSize: 10, fontWeight: 700, letterSpacing: "0.07em",
-
         color: "#94a3b8", textTransform: "uppercase",
-
         borderBottom: "1px solid #e2e8f0", padding: "0 6px 8px 6px",
-
         textAlign: "center", whiteSpace: "nowrap",
-
       },
-
       td: {
-
         borderBottom: "1px solid #f1f5f9", padding: "4px 6px", verticalAlign: "middle",
-
       },
-
       inlineInput: {
-
         width: "100%", fontSize: 12, border: "none",
-
         outline: "none", background: "transparent",
-
         color: "#0f172a", padding: "3px 0", fontFamily: "inherit",
-
       },
-
       numInput: {
-
         width: 38, fontSize: 13, border: "none", outline: "none",
-
         background: "transparent", color: "#0f172a",
-
         padding: "3px 0", textAlign: "center", fontWeight: 600,
-
         fontFamily: "inherit",
-
       },
-
       delBtn: {
-
         background: "none", border: "none", color: "#cbd5e1",
-
         fontSize: 16, cursor: "pointer", padding: "2px 4px", lineHeight: 1,
-
         transition: "color 0.15s",
-
       },
-
       addBtn: {
-
         marginTop: 8, background: "none", border: "1px dashed #cbd5e1",
-
         borderRadius: 4, color: "#94a3b8", fontSize: 12,
-
         cursor: "pointer", padding: "4px 12px", fontFamily: "inherit",
-
         transition: "border-color 0.15s, color 0.15s",
-
       },
-
       textarea: {
-
         width: "100%", fontSize: 13, background: "transparent",
-
         border: "none", borderBottom: "1.5px solid #e2e8f0",
-
         outline: "none", resize: "none", padding: "4px 0",
-
         lineHeight: 1.6, fontFamily: "inherit", color: "#0f172a",
-
       },
-
     };
 
-
-
     // ── UTIL COLORS ──────────────────────────────────────────────────────────────
-
     function utilColor(pct) {
-
       if (pct > 100) return "#dc2626";
-
       if (pct >= 80)  return "#16a34a";
-
       if (pct >= 50)  return "#d97706";
-
       return "#64748b";
-
     }
-
     function utilBg(pct) {
-
       if (pct > 100) return "#fee2e2";
-
       if (pct >= 80)  return "#dcfce7";
-
       if (pct >= 50)  return "#fef9c3";
-
       return "#f1f5f9";
-
     }
-
     function utilLabel(pct) {
-
       if (pct > 100) return "Over";
-
       if (pct >= 80)  return "Optimal";
-
       if (pct >= 50)  return "Partial";
-
       return "Low";
-
     }
-
-
 
     // ── COMPONENTS ───────────────────────────────────────────────────────────────
-
     function SectionHead({ title, n }) {
-
       return (
-
         <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 18 }}>
-
           <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.12em", color: "#94a3b8", textTransform: "uppercase", whiteSpace: "nowrap" }}>
-
             {String(n).padStart(2, "0")} · {title}
-
           </div>
-
           <div style={{ flex: 1, height: 1, background: "#e2e8f0" }} />
-
         </div>
-
       );
-
     }
-
-
 
     function Divider() {
-
       return <hr style={{ border: "none", borderTop: "1.5px dashed #334155", margin: "22px 0" }} />;
-
     }
-
-
 
     function StatCard({ label, value, sub, valueColor }) {
-
       return (
-
         <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 8, padding: "12px 14px" }}>
-
           <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "#94a3b8", textTransform: "uppercase", marginBottom: 5 }}>
-
             {label}
-
           </div>
-
           <div style={{ fontSize: 21, fontWeight: 800, color: valueColor || "#0f172a", lineHeight: 1.1 }}>
-
             {value}
-
           </div>
-
           {sub && <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 3 }}>{sub}</div>}
-
         </div>
-
       );
-
     }
-
-
 
     function ProjectStatusBadge({ value, onChange }) {
-
       const opts = ["Active", "On Hold", "Completed", "Pending"];
-
       const map = {
-
         Active:    { bg: "#dcfce7", fg: "#166534" },
-
         "On Hold": { bg: "#fef9c3", fg: "#854d0e" },
-
         Completed: { bg: "#dbeafe", fg: "#1e40af" },
-
         Pending:   { bg: "#fee2e2", fg: "#991b1b" },
-
         "":        { bg: "#f1f5f9", fg: "#64748b" },
-
       };
-
       const c = map[value] || map[""];
-
       return (
-
         <div style={{ position: "relative", display: "inline-block" }}>
-
           <select value={value} onChange={e => onChange(e.target.value)} style={{
-
             appearance: "none", background: c.bg, color: c.fg,
-
             border: "none", borderRadius: 4, padding: "2px 22px 2px 8px",
-
             fontSize: 11, fontWeight: 600, cursor: "pointer", outline: "none",
-
             fontFamily: "inherit",
-
           }}>
-
             {opts.map(o => <option key={o}>{o}</option>)}
-
           </select>
-
           <span style={{ position: "absolute", right: 6, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", fontSize: 8, color: c.fg }}>▾</span>
-
         </div>
-
       );
-
     }
-
-
 
     function MemberSelect({ value, members, onChange }) {
-
       return (
-
         <select value={value} onChange={e => onChange(parseInt(e.target.value))} style={{
-
           ...S.inlineInput, cursor: "pointer", fontSize: 12, appearance: "none",
-
         }}>
-
           {members.map(m => (
-
             <option key={m.id} value={m.id}>{m.name || `Member ${m.id}`}</option>
-
           ))}
-
         </select>
-
       );
-
     }
-
-
 
     function ProjectSelect({ value, projects, onChange }) {
-
       return (
-
         <select value={value} onChange={e => onChange(parseInt(e.target.value))} style={{
-
           ...S.inlineInput, cursor: "pointer", fontSize: 12, appearance: "none",
-
         }}>
-
           {projects.map(p => (
-
             <option key={p.id} value={p.id}>
-
               {p.code ? `${p.code}: ${p.name || "—"}` : p.name || `Project ${p.id}`}
-
             </option>
-
           ))}
-
         </select>
-
       );
-
     }
-
-
 
     function UtilBar({ name, role, allocated, capacity }) {
-
       const pct = capacity > 0 ? Math.round((allocated / capacity) * 100) : 0;
-
       const barPct = Math.min(100, pct);
-
       const barColor = pct > 100 ? "#f87171" : pct >= 80 ? "#34d399" : pct >= 50 ? "#fbbf24" : "#94a3b8";
-
       const label = utilLabel(pct);
-
       return (
-
         <div style={{ marginBottom: 13 }}>
-
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
-
             <div>
-
               <span style={{ fontSize: 12, fontWeight: 700, color: "#0f172a" }}>{name || "—"}</span>
-
               {role && <span style={{ fontSize: 10, color: "#94a3b8", marginLeft: 6 }}>{role}</span>}
-
             </div>
-
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-
               <span style={{ fontSize: 11, color: "#64748b" }}>{allocated}h / {capacity}h</span>
-
               <span style={{
-
                 fontSize: 10, fontWeight: 700,
-
                 color: utilColor(pct), background: utilBg(pct),
-
                 padding: "1px 6px", borderRadius: 3,
-
               }}>{label}</span>
-
             </div>
-
           </div>
-
           <div style={{ height: 5, background: "#f1f5f9", borderRadius: 99, overflow: "hidden" }}>
-
             <div style={{ width: `${barPct}%`, height: "100%", background: barColor, borderRadius: 99, transition: "width 0.4s ease" }} />
-
           </div>
-
         </div>
-
       );
-
     }
 
-
-
     // ── MAIN APP ─────────────────────────────────────────────────────────────────
-
     function App() {
-
       const [data, setData] = useState(() => {
-
         try {
-
           const raw = localStorage.getItem(STORAGE_KEY);
-
           return raw ? JSON.parse(raw) : DEFAULT;
-
         } catch { return DEFAULT; }
-
       });
-
       const [savedAt, setSavedAt] = useState(null);
-
       const nextId = useRef(getMaxId(data));
-
       const saveTimer = useRef(null);
 
-
-
       // Auto-save
-
       useEffect(() => {
-
         if (saveTimer.current) clearTimeout(saveTimer.current);
-
         saveTimer.current = setTimeout(() => {
-
           localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-
           setSavedAt(new Date());
-
         }, 700);
-
         return () => clearTimeout(saveTimer.current);
-
       }, [data]);
-
-
 
       const set = useCallback((k, v) => setData(p => ({ ...p, [k]: v })), []);
 
-
-
       // Week nav
-
       const weekEnd = addDays(data.weekStart, 4);
-
       const weekNum = getWeekNum(data.weekStart);
-
       const dayDates = DAYS.map((_, i) => addDays(data.weekStart, i));
 
-
-
       // Computed totals
-
       const memberTotals = useMemo(() => {
-
         const t = {};
-
         data.allocations.forEach(a => {
-
           t[a.memberId] = (t[a.memberId] || 0) + DAYS.reduce((s, d) => s + (parseFloat(a[d]) || 0), 0);
-
         });
-
         return t;
-
       }, [data.allocations]);
-
-
 
       const projectTotals = useMemo(() => {
-
         const t = {};
-
         data.allocations.forEach(a => {
-
           t[a.projectId] = (t[a.projectId] || 0) + DAYS.reduce((s, d) => s + (parseFloat(a[d]) || 0), 0);
-
         });
-
         return t;
-
       }, [data.allocations]);
 
-
-
       const dayTotals = useMemo(() =>
-
         DAYS.map(d => data.allocations.reduce((s, a) => s + (parseFloat(a[d]) || 0), 0)),
-
         [data.allocations]
-
       );
 
-
-
       const weekCapacity = (parseInt(data.capacityPerDay) || 8) * 5;
-
       const activeMembers = data.members.filter(m => m.name).length;
-
       const totalCapacity = activeMembers * weekCapacity;
-
       const totalAllocated = Object.values(memberTotals).reduce((a, b) => a + b, 0);
-
       const utilPct = totalCapacity > 0 ? Math.round((totalAllocated / totalCapacity) * 100) : 0;
-
       const available = Math.max(0, totalCapacity - totalAllocated);
 
-
-
       // Update helpers
-
       const updateProject = (id, f, v) => set("projects", data.projects.map(p => p.id === id ? { ...p, [f]: v } : p));
-
       const updateMember  = (id, f, v) => set("members",  data.members.map(m => m.id === id ? { ...m, [f]: v } : m));
-
       const updateAlloc   = (id, f, v) => set("allocations", data.allocations.map(a => a.id === id ? { ...a, [f]: v } : a));
 
-
-
       const addProject = () => {
-
         const id = nextId.current++;
-
         set("projects", [...data.projects, { id, code: "", name: "", lead: "", status: "Active" }]);
-
       };
-
       const removeProject = id => {
-
         set("projects", data.projects.filter(p => p.id !== id));
-
         set("allocations", data.allocations.filter(a => a.projectId !== id));
-
       };
-
-
 
       const addMember = () => {
-
         const id = nextId.current++;
-
         set("members", [...data.members, { id, name: "", role: "" }]);
-
       };
-
       const removeMember = id => {
-
         set("members", data.members.filter(m => m.id !== id));
-
         set("allocations", data.allocations.filter(a => a.memberId !== id));
-
       };
-
-
 
       const addAlloc = () => {
-
         const id = nextId.current++;
-
         const firstMember  = data.members[0]?.id  || 1;
-
         const firstProject = data.projects[0]?.id || 1;
-
         set("allocations", [...data.allocations, {
-
           id, memberId: firstMember, projectId: firstProject,
-
           mon: "", tue: "", wed: "", thu: "", fri: "", notes: "",
-
         }]);
-
       };
-
       const removeAlloc = id => set("allocations", data.allocations.filter(a => a.id !== id));
-
-
 
       const rowTotal = a => DAYS.reduce((s, d) => s + (parseFloat(a[d]) || 0), 0);
 
-
-
       const navInput = {
-
         background: "transparent", border: "none", borderBottom: "1.5px solid transparent",
-
         outline: "none", fontSize: 13, color: "#0f172a", padding: "2px 0",
-
         fontFamily: "inherit", transition: "border-color 0.15s",
-
       };
 
-
-
       return (
-
         <div style={{ minHeight: "100vh", background: "#f8fafc", fontFamily: "'DM Sans', 'IBM Plex Sans', system-ui, sans-serif", color: "#0f172a" }}>
 
-
-
           {/* ── PRINT STYLES */}
-
           <style>{`@media print{.no-print{display:none!important}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}@page{size:A3 landscape;margin:8mm}}`}</style>
 
-
-
           {/* ── TOP NAV ──────────────────────────────────────────────────────── */}
-
           <div className="no-print" style={{
-
             position: "sticky", top: 0, zIndex: 100, background: "#ffffff",
-
             borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center",
-
             padding: "0 32px", height: 52, gap: 18,
-
           }}>
-
             {/* Brand */}
-
             <div style={{ fontWeight: 800, fontSize: 15, letterSpacing: "0.05em", color: "#0f172a", borderRight: "1px solid #e2e8f0", paddingRight: 18, marginRight: 2, whiteSpace: "nowrap" }}>
-
               DesignTomorrow
-
             </div>
-
-
 
             {/* Week Navigator */}
-
             <div style={{ display: "flex", alignItems: "center", gap: 6, borderRight: "1px solid #e2e8f0", paddingRight: 18 }}>
-
               <button onClick={() => set("weekStart", addDays(data.weekStart, -7))} style={{ background: "none", border: "none", cursor: "pointer", color: "#64748b", fontSize: 18, padding: "0 4px", lineHeight: 1 }}>‹</button>
-
               <div style={{ textAlign: "center" }}>
-
                 <div style={{ fontSize: 12, fontWeight: 700, color: "#0f172a", letterSpacing: "0.02em" }}>
-
                   Week {weekNum}
-
                 </div>
-
                 <div style={{ fontSize: 10, color: "#94a3b8", letterSpacing: "0.03em" }}>
-
                   {fmtShort(data.weekStart)} – {fmtShort(weekEnd)}
-
                 </div>
-
               </div>
-
               <button onClick={() => set("weekStart", addDays(data.weekStart, 7))} style={{ background: "none", border: "none", cursor: "pointer", color: "#64748b", fontSize: 18, padding: "0 4px", lineHeight: 1 }}>›</button>
-
               <button onClick={() => set("weekStart", getMonday(todayStr))} style={{ background: "none", border: "1px solid #e2e8f0", borderRadius: 4, cursor: "pointer", color: "#64748b", fontSize: 10, padding: "2px 8px", fontFamily: "inherit", letterSpacing: "0.05em", textTransform: "uppercase" }}>Today</button>
-
             </div>
 
-
-
             <input
-
               value={data.department}
-
               onChange={e => set("department", e.target.value)}
-
               placeholder="Department / Team"
-
               style={{ ...navInput, width: 180, color: "#64748b" }}
-
             />
-
-
 
             <div style={{ flex: 1 }} />
 
-
-
             {/* Resource Allocation Label */}
-
             <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: "#94a3b8", textTransform: "uppercase" }}>
-
               Weekly Resource Allocation
-
             </div>
-
-
 
             {/* Save indicator */}
-
             <div style={{ fontSize: 11, color: savedAt ? "#10b981" : "#94a3b8", letterSpacing: "0.04em", minWidth: 90, textAlign: "right" }}>
-
               {savedAt ? `Saved ${savedAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}` : ""}
-
             </div>
-
-
 
             {/* PDF */}
-
             <button className="no-print" onClick={() => window.print()} style={{
-
               display: "flex", alignItems: "center", gap: 6, background: "#0f172a",
-
               color: "#ffffff", border: "none", borderRadius: 6, padding: "6px 14px",
-
               fontSize: 11, fontWeight: 700, letterSpacing: "0.06em",
-
               cursor: "pointer", textTransform: "uppercase", fontFamily: "inherit",
-
             }}>↓ Download PDF</button>
-
           </div>
 
-
-
           {/* ── 3-COLUMN LAYOUT ──────────────────────────────────────────────── */}
-
           <div style={{ display: "grid", gridTemplateColumns: "280px 1fr 260px", gap: 0, padding: "28px 0 60px", alignItems: "start" }}>
 
-
-
             {/* ══════════════════════════════════════════════════════════════
-
                 COLUMN 1 — Week Summary · Team Members · Project Register
-
             ══════════════════════════════════════════════════════════════ */}
-
             <div className="page-col" style={{ borderRight: "3px solid #f8fafc", padding: "0 22px 0 28px", display: "flex", flexDirection: "column" }}>
 
-
-
               {/* 01 · WEEK SUMMARY */}
-
               <SectionHead title="Week Summary" n={1} />
-
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 16 }}>
-
                 <StatCard
-
                   label="Team Capacity"
-
                   value={`${totalCapacity}h`}
-
                   sub={`${activeMembers} members · ${weekCapacity}h/wk`}
-
                 />
-
                 <StatCard
-
                   label="Allocated"
-
                   value={`${totalAllocated}h`}
-
                   sub="This week"
-
                   valueColor={totalAllocated > totalCapacity ? "#dc2626" : "#0f172a"}
-
                 />
-
                 <StatCard
-
                   label="Utilization"
-
                   value={`${utilPct}%`}
-
                   sub={utilLabel(utilPct)}
-
                   valueColor={utilColor(utilPct)}
-
                 />
-
                 <StatCard
-
                   label="Available"
-
                   value={`${available}h`}
-
                   sub="Remaining hrs"
-
                   valueColor="#64748b"
-
                 />
-
               </div>
-
-
 
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
-
                 <div style={S.fieldLabel}>Std. hrs / day</div>
-
                 <input
-
                   type="number" min={1} max={12}
-
                   value={data.capacityPerDay}
-
                   onChange={e => set("capacityPerDay", parseInt(e.target.value) || 8)}
-
                   style={{ ...S.numInput, width: 36, borderBottom: "1px solid #e2e8f0", textAlign: "left", paddingLeft: 4 }}
-
                 />
-
               </div>
 
-
-
               <Divider />
-
-
 
               {/* 02 · TEAM MEMBERS */}
-
               <SectionHead title="Team Members" n={2} />
-
               <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: 4 }}>
-
                 <thead>
-
                   <tr>
-
                     <th style={{ ...S.th, textAlign: "left" }}>Name</th>
-
                     <th style={{ ...S.th, textAlign: "left" }}>Role</th>
-
                     <th style={{ ...S.th, width: 28 }}></th>
-
                   </tr>
-
                 </thead>
-
                 <tbody>
-
                   {data.members.map(m => (
-
                     <tr key={m.id}>
-
                       <td style={S.td}>
-
                         <input value={m.name} onChange={e => updateMember(m.id, "name", e.target.value)} placeholder="Name" style={S.inlineInput} />
-
                       </td>
-
                       <td style={S.td}>
-
                         <input value={m.role} onChange={e => updateMember(m.id, "role", e.target.value)} placeholder="Architect" style={S.inlineInput} />
-
                       </td>
-
                       <td style={S.td}>
-
                         <button onClick={() => removeMember(m.id)} style={S.delBtn}>÷</button>
-
                       </td>
-
                     </tr>
-
                   ))}
-
                 </tbody>
-
               </table>
-
               <button onClick={addMember} style={S.addBtn}>+ Add member</button>
 
-
-
               <Divider />
-
-
 
               {/* 03 · PROJECT REGISTER */}
-
               <SectionHead title="Project Register" n={3} />
-
               <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: 4 }}>
-
                 <thead>
-
                   <tr>
-
                     <th style={{ ...S.th, textAlign: "left", width: "22%" }}>Code</th>
-
                     <th style={{ ...S.th, textAlign: "left" }}>Project</th>
-
                     <th style={{ ...S.th, textAlign: "left" }}>Lead</th>
-
                     <th style={{ ...S.th, width: 28 }}></th>
-
                   </tr>
-
                 </thead>
-
                 <tbody>
-
                   {data.projects.map(p => (
-
                     <tr key={p.id}>
-
                       <td style={S.td}>
-
                         <input value={p.code} onChange={e => updateProject(p.id, "code", e.target.value)} placeholder="CODE" style={{ ...S.inlineInput, textTransform: "uppercase", fontWeight: 700, fontSize: 11, letterSpacing: "0.06em" }} />
-
                       </td>
-
                       <td style={S.td}>
-
                         <input value={p.name} onChange={e => updateProject(p.id, "name", e.target.value)} placeholder="Project name" style={S.inlineInput} />
-
                       </td>
-
                       <td style={S.td}>
-
                         <input value={p.lead} onChange={e => updateProject(p.id, "lead", e.target.value)} placeholder="Lead" style={S.inlineInput} />
-
                       </td>
-
                       <td style={S.td}>
-
                         <button onClick={() => removeProject(p.id)} style={S.delBtn}>÷</button>
-
                       </td>
-
                     </tr>
-
                   ))}
-
                 </tbody>
-
               </table>
-
               {/* Project statuses inline */}
-
               <div style={{ marginTop: 8, display: "flex", flexWrap: "wrap", gap: 6 }}>
-
                 {data.projects.map(p => (
-
                   <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-
                     <span style={{ fontSize: 10, color: "#94a3b8", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" }}>{p.code || "—"}</span>
-
                     <ProjectStatusBadge value={p.status} onChange={v => updateProject(p.id, "status", v)} />
-
                   </div>
-
                 ))}
-
               </div>
-
               <button onClick={addProject} style={{ ...S.addBtn, marginTop: 12 }}>+ Add project</button>
-
             </div>
 
-
-
             {/* ══════════════════════════════════════════════════════════════
-
                 COLUMN 2 — Allocation Matrix · Project Hours Summary
-
             ══════════════════════════════════════════════════════════════ */}
-
             <div className="page-col" style={{ borderRight: "3px solid #f8fafc", padding: "0 24px", display: "flex", flexDirection: "column" }}>
 
-
-
               {/* 04 · WEEKLY ALLOCATION MATRIX */}
-
               <SectionHead title="Weekly Resource Allocation" n={4} />
 
-
-
               <div style={{ overflowX: "auto", marginBottom: 4 }}>
-
                 <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 560 }}>
-
                   <thead>
-
                     <tr>
-
                       <th style={{ ...S.th, textAlign: "left", width: "18%" }}>Member</th>
-
                       <th style={{ ...S.th, textAlign: "left", width: "10%", color: "#cbd5e1" }}>Role</th>
-
                       <th style={{ ...S.th, textAlign: "left", width: "20%" }}>Project</th>
-
                       {DAYS.map((d, i) => (
-
                         <th key={d} style={{ ...S.th, width: "9%" }}>
-
                           <div>{DAY_LABELS[i]}</div>
-
                           <div style={{ fontSize: 9, fontWeight: 400, color: "#cbd5e1", marginTop: 1 }}>
-
                             {new Date(dayDates[i] + "T00:00:00").getDate()}/
-
                             {new Date(dayDates[i] + "T00:00:00").getMonth() + 1}
-
                           </div>
-
                         </th>
-
                       ))}
-
                       <th style={{ ...S.th, width: "7%" }}>Hrs</th>
-
                       <th style={{ ...S.th, width: "8%" }}>Util</th>
-
                       <th style={{ ...S.th, width: 28 }}></th>
-
                     </tr>
-
                   </thead>
-
                   <tbody>
-
                     {data.allocations.map(alloc => {
-
                       const member  = data.members.find(m => m.id === alloc.memberId);
-
                       const project = data.projects.find(p => p.id === alloc.projectId);
-
                       const rTotal  = rowTotal(alloc);
-
                       const mTotal  = memberTotals[alloc.memberId] || 0;
-
                       const mUtil   = weekCapacity > 0 ? Math.round((mTotal / weekCapacity) * 100) : 0;
-
                       const isOver  = mUtil > 100;
 
-
-
                       return (
-
                         <tr key={alloc.id} style={{ background: isOver ? "#fff8f8" : "transparent" }}>
-
                           <td style={S.td}>
-
                             <MemberSelect value={alloc.memberId} members={data.members} onChange={v => updateAlloc(alloc.id, "memberId", v)} />
-
                           </td>
-
                           <td style={{ ...S.td, fontSize: 11, color: "#94a3b8" }}>
-
                             {member?.role || "—"}
-
                           </td>
-
                           <td style={S.td}>
-
                             <ProjectSelect value={alloc.projectId} projects={data.projects} onChange={v => updateAlloc(alloc.id, "projectId", v)} />
-
                           </td>
-
                           {DAYS.map(d => (
-
                             <td key={d} style={{ ...S.td, textAlign: "center", padding: "4px 2px" }}>
-
                               <input
-
                                 type="number" min={0} max={24} step={0.5}
-
                                 value={alloc[d]}
-
                                 onChange={e => updateAlloc(alloc.id, d, e.target.value)}
-
                                 placeholder="—"
-
                                 style={{ ...S.numInput, color: parseFloat(alloc[d]) > 0 ? "#0f172a" : "#cbd5e1" }}
-
                               />
-
                             </td>
-
                           ))}
-
                           <td style={{ ...S.td, textAlign: "center" }}>
-
                             <span style={{ fontSize: 12, fontWeight: 700, color: rTotal > 0 ? "#0f172a" : "#cbd5e1" }}>
-
                               {rTotal > 0 ? rTotal : "—"}
-
                             </span>
-
                           </td>
-
                           <td style={{ ...S.td, textAlign: "center" }}>
-
                             {mUtil > 0 && (
-
                               <span style={{ fontSize: 10, fontWeight: 700, color: utilColor(mUtil), background: utilBg(mUtil), borderRadius: 3, padding: "1px 5px" }}>
-
                                 {mUtil}%
-
                               </span>
-
                             )}
-
                           </td>
-
                           <td style={S.td}>
-
                             <button onClick={() => removeAlloc(alloc.id)} style={S.delBtn}>÷</button>
-
                           </td>
-
                         </tr>
-
                       );
-
                     })}
-
                   </tbody>
-
                   <tfoot>
-
                     <tr style={{ borderTop: "2px solid #e2e8f0", background: "#fafafa" }}>
-
                       <td colSpan={3} style={{ ...S.td, fontSize: 10, fontWeight: 700, letterSpacing: "0.07em", color: "#94a3b8", textTransform: "uppercase", padding: "8px 6px" }}>
-
                         Day Totals
-
                       </td>
-
                       {dayTotals.map((t, i) => (
-
                         <td key={i} style={{ ...S.td, textAlign: "center", fontWeight: 700, fontSize: 12, color: t > 0 ? "#0f172a" : "#e2e8f0", padding: "8px 2px" }}>
-
                           {t > 0 ? t : "—"}
-
                         </td>
-
                       ))}
-
                       <td style={{ ...S.td, textAlign: "center", fontWeight: 800, fontSize: 13, padding: "8px 6px" }}>
-
                         {totalAllocated > 0 ? totalAllocated : "—"}
-
                       </td>
-
                       <td style={{ ...S.td, textAlign: "center", padding: "8px 6px" }}>
-
                         {utilPct > 0 && (
-
                           <span style={{ fontSize: 11, fontWeight: 700, color: utilColor(utilPct), background: utilBg(utilPct), borderRadius: 3, padding: "2px 6px" }}>
-
                             {utilPct}%
-
                           </span>
-
                         )}
-
                       </td>
-
                       <td style={S.td} />
-
                     </tr>
-
                   </tfoot>
-
                 </table>
-
               </div>
-
               <button onClick={addAlloc} style={{ ...S.addBtn, marginBottom: 22 }}>+ Add allocation row</button>
 
-
-
               <Divider />
-
-
-
-              {/* 05 · PROJECT HOURS SUMMARY */}
-
-              <SectionHead title="Project Hours Summary" n={5} />
-
-              <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: 8 }}>
-
-                <thead>
-
-                  <tr>
-
-                    <th style={{ ...S.th, textAlign: "left", width: "30%" }}>Project</th>
-
-                    <th style={{ ...S.th, textAlign: "left" }}>Lead</th>
-
-                    <th style={{ ...S.th }}>Status</th>
-
-                    <th style={{ ...S.th }}>Total Hrs</th>
-
-                    <th style={{ ...S.th, width: "25%" }}>% of Week</th>
-
-                  </tr>
-
-                </thead>
-
-                <tbody>
-
-                  {data.projects.map(p => {
-
-                    const hrs = projectTotals[p.id] || 0;
-
-                    const pct = totalAllocated > 0 ? Math.round((hrs / totalAllocated) * 100) : 0;
-
-                    const statusColors = {
-
-                      Active:    { bg: "#dcfce7", fg: "#166534" },
-
-                      "On Hold": { bg: "#fef9c3", fg: "#854d0e" },
-
-                      Completed: { bg: "#dbeafe", fg: "#1e40af" },
-
-                      Pending:   { bg: "#fee2e2", fg: "#991b1b" },
-
-                    };
-
-                    const sc = statusColors[p.status] || { bg: "#f1f5f9", fg: "#64748b" };
-
-                    return (
-
-                      <tr key={p.id}>
-
-                        <td style={S.td}>
-
-                          {p.code && <span style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", letterSpacing: "0.06em", textTransform: "uppercase", marginRight: 6 }}>{p.code}</span>}
-
-                          <span style={{ fontSize: 12 }}>{p.name || "—"}</span>
-
-                        </td>
-
-                        <td style={{ ...S.td, fontSize: 11, color: "#64748b" }}>{p.lead || "—"}</td>
-
-                        <td style={{ ...S.td, textAlign: "center" }}>
-
-                          <span style={{ fontSize: 10, fontWeight: 700, background: sc.bg, color: sc.fg, padding: "2px 7px", borderRadius: 3 }}>
-
-                            {p.status}
-
-                          </span>
-
-                        </td>
-
-                        <td style={{ ...S.td, textAlign: "center", fontWeight: 700, fontSize: 13, color: hrs > 0 ? "#0f172a" : "#cbd5e1" }}>
-
-                          {hrs > 0 ? `${hrs}h` : "—"}
-
-                        </td>
-
-                        <td style={{ ...S.td }}>
-
-                          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-
-                            <div style={{ flex: 1, height: 4, background: "#f1f5f9", borderRadius: 99 }}>
-
-                              <div style={{ width: `${pct}%`, height: "100%", background: "#0ea5e9", borderRadius: 99, transition: "width 0.4s" }} />
-
-                            </div>
-
-                            <span style={{ fontSize: 11, fontWeight: 600, color: pct > 0 ? "#64748b" : "#e2e8f0", minWidth: 28, textAlign: "right" }}>
-
-                              {pct > 0 ? `${pct}%` : "—"}
-
-                            </span>
-
-                          </div>
-
-                        </td>
-
-                      </tr>
-
-                    );
-
-                  })}
-
-                </tbody>
-
-              </table>
-
-            </div>
-
-
-
-            {/* ══════════════════════════════════════════════════════════════
-
-                COLUMN 3 — Utilization Summary · Capacity Notes · Actions
-
-            ══════════════════════════════════════════════════════════════ */}
-
-            <div className="page-col" style={{ padding: "0 28px 0 22px", display: "flex", flexDirection: "column" }}>
-
-
-
               {/* 06 · UTILIZATION SUMMARY */}
-
               <SectionHead title="Utilization Summary" n={6} />
-
               <div style={{ marginBottom: 4 }}>
-
                 {data.members.map(m => (
-
                   <UtilBar
-
                     key={m.id}
-
                     name={m.name}
-
                     role={m.role}
-
                     allocated={memberTotals[m.id] || 0}
-
                     capacity={weekCapacity}
-
                   />
-
                 ))}
-
                 {data.members.length === 0 && (
-
                   <div style={{ fontSize: 12, color: "#cbd5e1", textAlign: "center", padding: "12px 0" }}>No team members added</div>
-
                 )}
-
               </div>
-
-
 
               {/* Legend */}
-
               <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 4 }}>
-
                 {[["Over","#fee2e2","#dc2626"],["Optimal","#dcfce7","#16a34a"],["Partial","#fef9c3","#d97706"],["Low","#f1f5f9","#64748b"]].map(([l, bg, fg]) => (
-
                   <div key={l} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-
                     <div style={{ width: 8, height: 8, borderRadius: 2, background: bg, border: `1px solid ${fg}22` }} />
-
                     <span style={{ fontSize: 10, color: "#94a3b8", letterSpacing: "0.05em" }}>{l}</span>
-
                   </div>
-
                 ))}
-
               </div>
 
-
-
               <Divider />
-
-
 
               {/* 07 · CAPACITY NOTES */}
-
               <SectionHead title="Capacity Notes" n={7} />
-
               <div style={{ marginBottom: 14 }}>
-
                 <div style={S.fieldLabel}>Leave / Absence</div>
-
                 <textarea
-
                   rows={3} value={data.leaveNotes}
-
                   onChange={e => set("leaveNotes", e.target.value)}
-
                   placeholder="Note any team leave or planned absence this week…"
-
                   style={S.textarea}
-
                 />
-
               </div>
-
               <div style={{ marginBottom: 14 }}>
-
                 <div style={S.fieldLabel}>Bottlenecks & Constraints</div>
-
                 <textarea
-
                   rows={3} value={data.bottlenecks}
-
                   onChange={e => set("bottlenecks", e.target.value)}
-
                   placeholder="Identify resource bottlenecks, constraints, or escalation risks…"
-
                   style={S.textarea}
-
                 />
-
               </div>
-
-
 
               <Divider />
 
-
-
               {/* 08 · ACTION ITEMS */}
-
               <SectionHead title="Action Items" n={8} />
-
               <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: 4 }}>
-
                 <thead>
-
                   <tr>
-
                     <th style={{ ...S.th, width: 28 }}>#</th>
-
                     <th style={{ ...S.th, textAlign: "left" }}>Action</th>
-
                     <th style={S.th}>Owner</th>
-
                     <th style={{ ...S.th, width: 28 }}></th>
-
                   </tr>
-
                 </thead>
-
                 <tbody>
-
                   {data.actions.map((a, i) => (
-
                     <tr key={i}>
-
                       <td style={{ ...S.td, fontSize: 11, fontWeight: 700, color: "#cbd5e1", textAlign: "center", fontFamily: "monospace" }}>
-
                         {String(i + 1).padStart(2, "0")}
-
                       </td>
-
                       <td style={S.td}>
-
                         <input
-
                           value={a.action}
-
                           onChange={e => set("actions", data.actions.map((x, j) => j === i ? { ...x, action: e.target.value } : x))}
-
                           placeholder="Enter action item…"
-
                           style={S.inlineInput}
-
                         />
-
                       </td>
-
                       <td style={S.td}>
-
                         <input
-
                           value={a.owner}
-
                           onChange={e => set("actions", data.actions.map((x, j) => j === i ? { ...x, owner: e.target.value } : x))}
-
                           placeholder="Name"
-
                           style={{ ...S.inlineInput, textAlign: "center" }}
-
                         />
-
                       </td>
-
                       <td style={S.td}>
-
                         <button onClick={() => set("actions", data.actions.filter((_, j) => j !== i))} style={S.delBtn}>÷</button>
-
                       </td>
-
                     </tr>
-
                   ))}
-
                 </tbody>
-
               </table>
-
               <button onClick={() => set("actions", [...data.actions, { action: "", owner: "" }])} style={S.addBtn}>+ Add row</button>
-
             </div>
-
-
 
           </div>{/* end 3-col grid */}
 
-
-
           {/* ── FOOTER ───────────────────────────────────────────────────────── */}
-
           <div style={{ borderTop: "1px solid #e2e8f0", padding: "16px 32px", display: "flex", justifyContent: "space-between", alignItems: "center", background: "#ffffff" }}>
-
             <span style={{ fontSize: 11, color: "#cbd5e1", letterSpacing: "0.06em" }}>
-
               DT ARCHITECTURE &amp; DESIGN · CONFIDENTIAL · INTERNAL USE ONLY
-
             </span>
-
             <span style={{ fontSize: 11, color: "#cbd5e1" }}>{new Date().getFullYear()}</span>
-
           </div>
 
-
-
         </div>
-
       );
-
     }
 
-
-
     ReactDOM.createRoot(document.getElementById("root")).render(<App />);
-
   </script>
-
 </body>
-
 </html>
-
