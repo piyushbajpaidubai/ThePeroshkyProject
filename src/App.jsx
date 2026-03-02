@@ -9,7 +9,7 @@ async function loadData() {
     const parsed = {};
     for (const [k, v] of Object.entries(data)) {
       try { parsed[k] = JSON.parse(v); } catch { parsed[k] = v; }
-    }
+    }h
     return parsed;
   } catch { return null; }
 }
@@ -132,7 +132,17 @@ function BalanceIndicator({ available, spent }) {
   const formatted = balance === 0 ? "—" : (isPos ? "+" : "") + balance.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
   return (<div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: balance === 0 ? "#f1f5f9" : isPos ? "#dcfce7" : "#fee2e2", color: balance === 0 ? "#64748b" : isPos ? "#166534" : "#991b1b", borderRadius: 4, padding: "4px 12px", fontSize: 13, fontWeight: 700 }}>{balance !== 0 && <span style={{ fontSize: 11 }}>{isPos ? "▲" : "▼"}</span>}Balance: {formatted}</div>);
 }
-const styles = {
+function CPIIndicator({ internalBudget, actualSpent }) {
+  const parse = v => parseFloat((v || "").replace(/[^0-9.-]/g, "")) || 0;
+  const fee = parse(internalBudget);
+  const spent = parse(actualSpent);
+  const isEmpty = !internalBudget && !actualSpent;
+  const cpi = (!isEmpty && spent !== 0) ? (fee / spent) : null;
+  const formatted = cpi === null ? "—" : cpi.toFixed(2);
+  const isGood = cpi !== null && cpi >= 1;
+  const isBad = cpi !== null && cpi < 1;
+  return (<div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: cpi === null ? "#f1f5f9" : isGood ? "#dcfce7" : "#fee2e2", color: cpi === null ? "#64748b" : isGood ? "#166534" : "#991b1b", borderRadius: 4, padding: "4px 12px", fontSize: 13, fontWeight: 700 }}>{cpi !== null && <span style={{ fontSize: 11 }}>{isGood ? "▲" : "▼"}</span>}CPI: {formatted}</div>);
+} const styles = {
   fieldLabel: { fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "#94a3b8", textTransform: "uppercase", marginBottom: 4 },
   th: { fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "#94a3b8", textTransform: "uppercase", borderBottom: "1px solid #e2e8f0", padding: "0 8px 8px 8px", textAlign: "center" },
   td: { borderBottom: "1px solid #f1f5f9", padding: "4px 8px", verticalAlign: "middle" },
@@ -247,7 +257,7 @@ export default function App() {
           <Field label="Value of Invoice Issued" value={data.invoiceIssued} onChange={v => set("invoiceIssued", v)} placeholder="AED" />
           <Field label="External Spent To-Date" value={data.externalSpent} onChange={v => set("externalSpent", v)} placeholder="AED" />
         </TwoCol>
-        <div style={{ marginBottom: 14 }}><div style={styles.fieldLabel}>Cash Variance</div><CashVarianceIndicator invoiceIssued={data.invoiceIssued} actualSpent={data.actualSpent} externalSpent={data.externalSpent} /></div>
+        <div style={{ marginBottom: 14 }}><div style={styles.fieldLabel}>Cash Variance</div><CashVarianceIndicator invoiceIssued={data.invoiceIssued} actualSpent={data.actualSpent} externalSpent={data.externalSpent} /></div><div style={{ marginBottom: 14 }}><div style={styles.fieldLabel}>CPI (Cost Performance Index)</div><CPIIndicator internalBudget={data.internalBudget} actualSpent={data.actualSpent} /></div>
         <TwoCol>
           <Field label="Target Invoice Milestone & Value" value={data.targetInvoice} onChange={v => set("targetInvoice", v)} placeholder="Milestone name / AED" />
           <Field label="Invoice Due Date" value={data.invoiceDueDate} onChange={v => set("invoiceDueDate", v)} type="date" />
