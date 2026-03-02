@@ -237,7 +237,11 @@ export default function App() {
         {/* 02 · PROJECT STATUS */}
         <SectionHead title="Project Status" index={1} />
         <Field label="Current Stage & Status" value={data.projectStatus} onChange={v => set("projectStatus", v)} placeholder="Enter current stage" />
-        <ProgressBar value={data.progressPct} onChange={v => set("progressPct", v)} /><div style={{ marginBottom: 14 }}><div style={styles.fieldLabel}>CPI (Cost Performance Index)</div><CPIIndicator internalBudget={data.internalBudget} actualSpent={data.actualSpent} /></div>
+        <ProgressBar value={data.progressPct} onChange={v => set("progressPct", v)} />
+        <TwoCol>
+          <Field label="Target Invoice Milestone & Value" value={data.targetInvoice} onChange={v => set("targetInvoice", v)} placeholder="Milestone name / AED" />
+          <Field label="Invoice Due Date" value={data.invoiceDueDate} onChange={v => set("invoiceDueDate", v)} type="date" />
+        </TwoCol>
         <PageBreak />
         {/* 03 · BUDGET & FINANCIALS */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
@@ -257,11 +261,7 @@ export default function App() {
           <Field label="Value of Invoice Issued" value={data.invoiceIssued} onChange={v => set("invoiceIssued", v)} placeholder="AED" />
           <Field label="External Spent To-Date" value={data.externalSpent} onChange={v => set("externalSpent", v)} placeholder="AED" />
         </TwoCol>
-        <div style={{ marginBottom: 14 }}><div style={styles.fieldLabel}>Cash Variance</div><CashVarianceIndicator invoiceIssued={data.invoiceIssued} actualSpent={data.actualSpent} externalSpent={data.externalSpent} /></div>
-        <TwoCol>
-          <Field label="Target Invoice Milestone & Value" value={data.targetInvoice} onChange={v => set("targetInvoice", v)} placeholder="Milestone name / AED" />
-          <Field label="Invoice Due Date" value={data.invoiceDueDate} onChange={v => set("invoiceDueDate", v)} type="date" />
-        </TwoCol>
+        <div style={{ marginBottom: 14 }}><div style={styles.fieldLabel}>Cash Variance</div><CashVarianceIndicator invoiceIssued={data.invoiceIssued} actualSpent={data.actualSpent} externalSpent={data.externalSpent} /></div><div style={{ marginBottom: 14 }}><div style={styles.fieldLabel}>CPI (Cost Performance Index)</div><CPIIndicator internalBudget={data.internalBudget} actualSpent={data.actualSpent} /></div>
         </>}
         <PageBreak />
         {/* 04 · PAYMENT STATUS */}
