@@ -58,9 +58,26 @@ function BudgetStatusBadge({ value, onChange }) {
   const c = value === "Approved" ? { bg: "#dcfce7", fg: "#166534" } : { bg: "#fef9c3", fg: "#854d0e" };
   return (<div style={{ position: "relative", display: "inline-block" }}><select value={value} onChange={e => onChange(e.target.value)} style={{ appearance: "none", background: c.bg, color: c.fg, border: "none", borderRadius: 4, padding: "3px 24px 3px 10px", fontSize: 12, fontWeight: 600, cursor: "pointer", outline: "none" }}><option value="">Select</option>{opts.map(o => <option key={o}>{o}</option>)}</select><span style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", fontSize: 10, color: c.fg }}>▾</span></div>);
 }
-function TrafficLight({ value, onChange }) {
-  const opts = [{ value: "green", color: "#22c55e", label: "On Track" }, { value: "orange", color: "#f97316", label: "At Risk" }, { value: "red", color: "#ef4444", label: "Critical" }];
-  return (<div style={{ display: "flex", gap: 6, alignItems: "center", justifyContent: "center" }}>{opts.map(opt => (<button key={opt.value} title={opt.label} onClick={() => onChange(value === opt.value ? "" : opt.value)} style={{ width: 18, height: 18, borderRadius: "50%", border: value === opt.value ? `2px solid ${opt.color}` : "2px solid #e2e8f0", background: value === opt.value ? opt.color : "#f1f5f9", cursor: "pointer", padding: 0, transition: "all 0.15s", boxShadow: value === opt.value ? `0 0 6px ${opt.color}88` : "none" }} />))}</div>);
+function RiskStatusBar({ value, onChange }) {
+    const opts = [
+        { value: "monitor", label: "Monitor", bg: "#f97316", fg: "#ffffff" },
+            { value: "high_risk", label: "High Risk", bg: "#ef4444", fg: "#ffffff" },
+                { value: "action", label: "Action", bg: "#7f1d1d", fg: "#ffffff" },
+                    { value: "closed", label: "Closed", bg: "#9ca3af", fg: "#ffffff" },
+                      ];
+                        const selected = opts.find(o => o.value === value);
+                          const bg = selected ? selected.bg : "#f1f5f9";
+                            const fg = selected ? selected.fg : "#64748b";
+                              return (
+                                  <div style={{ position: "relative", display: "inline-block" }}>
+                                        <select value={value || ""} onChange={e => onChange(e.target.value)} style={{ appearance: "none", background: bg, color: fg, border: "none", borderRadius: 4, padding: "3px 24px 3px 10px", fontSize: 12, fontWeight: 600, cursor: "pointer", outline: "none", minWidth: 90 }}>
+                                                <option value="">Select</option>
+                                                        {opts.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                                                              </select>
+                                                                    <span style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", fontSize: 10, color: fg }}>▾</span>
+                                                                        </div>
+                                                                          );
+                                                                          }
 }
 function ProgressBar({ value, onChange }) {
   const pct = Math.min(100, Math.max(0, parseInt(value) || 0));
@@ -156,7 +173,7 @@ function CPIIndicator({ contractValue, progressPct, externalSpent, actualSpent }
             <tr key={i}>
               <td style={styles.tdNum}>{String(i + 1).padStart(2, "0")}</td>
               <td style={styles.td}><input value={row.issue} onChange={e => onChange(i, "issue", e.target.value)} placeholder="Describe issue or risk..." style={styles.inlineInput} /></td>
-              <td style={styles.td}><TrafficLight value={row.status || ""} onChange={v => onChange(i, "status", v)} /></td>
+              <td style={styles.td}><RiskStatusBar value={row.status || ""} onChange={v => onChange(i, "status", v)} /></td>
               <td style={styles.td}><button onClick={() => { const next = rows.filter((_, j) => j !== i); onChange("_replace", null, next); }} style={styles.delBtn}>×</button></td>
             </tr>
           ))}
