@@ -78,7 +78,6 @@ function RiskStatusBar({ value, onChange }) {
                                                                         </div>
                                                                           );
                                                                           }
-}
 function ProgressBar({ value, onChange }) {
   const pct = Math.min(100, Math.max(0, parseInt(value) || 0));
   const color = pct < 30 ? "#f87171" : pct < 70 ? "#fbbf24" : "#34d399";
