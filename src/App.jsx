@@ -305,10 +305,9 @@ export default function App() {
         <PageBreak />
         {/* 06 · VARIATIONS & RISKS */}
         <SectionHead title="Variations & Risks" index={5} />
-        <TwoCol>
           <Field label="Potential Variations - Plan of Action" value={data.potentialVariations} onChange={v => set("potentialVariations", v)} type="textarea" placeholder="Note potential variations" />
+                      <hr style={{ border: 'none', borderTop: '1px solid #e2e8f0', margin: '0 0 24px 0' }} />
           <div><div style={styles.fieldLabel}>Critical Issues &amp; Risks</div><CriticalIssuesTable rows={data.criticalIssues} onChange={(i, field, val) => setCriticalRow(i, field, val)} /></div>
-        </TwoCol>
         <PageBreak />
         {/* 07 · ACTION LIST */}
         <SectionHead title="Action List" index={6} />
