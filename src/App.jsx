@@ -26,29 +26,27 @@ async function saveData(data) {
   } catch {}
 }
 
-// Returns the Date of the most recent Monday at 18:00 local time
+// Returns the Monday-18:00 key for any given date (or current week if no date)
 function getMondaySnapshotKey(date) {
   const d = new Date(date);
-  const day = d.getDay(); // 0=Sun,1=Mon,...
+  const day = d.getDay();
   const diffToMon = (day === 0 ? -6 : 1 - day);
   d.setDate(d.getDate() + diffToMon);
   d.setHours(18, 0, 0, 0);
-  return d.toISOString().slice(0, 13); // "YYYY-MM-DDTHH"
+  return d.toISOString().slice(0, 13);
 }
 
 // Generate all Monday dates (18:00) from Mar 16 2026 through 4 weeks past current week
 function generateWeekLabels() {
-  const start = new Date(2026, 2, 16, 18, 0, 0); // Mar 16 2026
+  const start = new Date(2026, 2, 16, 18, 0, 0);
   const now = new Date();
-  // Find Monday of current week
   const day = now.getDay();
   const diffToMon = (day === 0 ? -6 : 1 - day);
   const currentMon = new Date(now);
   currentMon.setDate(now.getDate() + diffToMon);
   currentMon.setHours(18, 0, 0, 0);
   const endDate = new Date(currentMon);
-  endDate.setDate(endDate.getDate() + 28); // +4 weeks
-
+  endDate.setDate(endDate.getDate() + 28);
   const weeks = [];
   let cur = new Date(start);
   while (cur <= endDate) {
@@ -60,7 +58,6 @@ function generateWeekLabels() {
 }
 
 const MON_LABELS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-
 function formatWeekLabel(date) {
   return MON_LABELS[date.getMonth()] + " " + date.getDate();
 }
@@ -246,24 +243,23 @@ function CriticalIssuesTable({ rows, onChange }) {
 }
 
 // ─── BUDGET TREND CHART ───────────────────────────────────────────────────────
-function BudgetTrendChart({ budgetHistory, internalBudget, actualSpent }) {
+function BudgetTrendChart({ budgetHistory, internalBudget, actualSpent, onManualUpdate }) {
   const W = 820, H = 320;
   const PAD = { top: 24, right: 24, bottom: 52, left: 88 };
   const chartW = W - PAD.left - PAD.right;
   const chartH = H - PAD.top - PAD.bottom;
 
+  const [justUpdated, setJustUpdated] = useState(false);
+
   const parseVal = v => parseFloat((v || "").replace(/[^0-9.-]/g, "")) || 0;
   const budgetVal = parseVal(internalBudget);
 
-  // Y-axis max = internalBudget + 100,000, min 100,000 floor so chart is visible even empty
   const yMax = Math.max(budgetVal + 100000, 100000);
   const yMin = 0;
   const yRange = yMax - yMin;
 
-  // Generate week dates
   const weeks = generateWeekLabels();
 
-  // Build data points from budgetHistory keyed by getMondaySnapshotKey
   const dataPoints = weeks.map(weekDate => {
     const key = getMondaySnapshotKey(weekDate);
     const snap = budgetHistory[key];
@@ -275,23 +271,16 @@ function BudgetTrendChart({ budgetHistory, internalBudget, actualSpent }) {
     };
   });
 
-  // Helper: x position for index
   const xPos = i => PAD.left + (i / Math.max(weeks.length - 1, 1)) * chartW;
-
-  // Helper: y position for value
   const yPos = v => PAD.top + chartH - ((v - yMin) / yRange) * chartH;
-
-  // Y axis tick values (5 ticks)
   const yTicks = Array.from({ length: 6 }, (_, i) => yMin + (yRange / 5) * i);
 
-  // Format AED value for axis
   const fmtAED = v => {
-    if (v >= 1000000) return (v / 1000000).toFixed(1).replace(/.0$/, "") + "M";
+    if (v >= 1000000) return (v / 1000000).toFixed(1).replace(/\.0$/, "") + "M";
     if (v >= 1000) return (v / 1000).toFixed(0) + "K";
     return v.toString();
   };
 
-  // Build SVG path for a line (skip null points, connect non-nulls)
   const buildPath = (pts, key) => {
     let d = "";
     let started = false;
@@ -305,16 +294,25 @@ function BudgetTrendChart({ budgetHistory, internalBudget, actualSpent }) {
     return d;
   };
 
-  // Check if there's any history data
   const hasInternalData = dataPoints.some(p => p.internal !== null);
   const hasActualData = dataPoints.some(p => p.actual !== null);
 
-  // Today marker - find which week index is current or closest past
   const now = new Date();
   let todayIdx = -1;
   for (let i = weeks.length - 1; i >= 0; i--) {
     if (weeks[i] <= now) { todayIdx = i; break; }
   }
+
+  // Determine current week key and its snapshot values for the Update button label
+  const currentKey = getMondaySnapshotKey(now);
+  const currentSnap = budgetHistory[currentKey];
+  const currentWeekLabel = formatWeekLabel(new Date(currentKey));
+
+  const handleUpdate = () => {
+    onManualUpdate();
+    setJustUpdated(true);
+    setTimeout(() => setJustUpdated(false), 2500);
+  };
 
   return (
     <div style={{ marginTop: 28, marginBottom: 8 }}>
@@ -335,105 +333,83 @@ function BudgetTrendChart({ budgetHistory, internalBudget, actualSpent }) {
       </div>
       <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 8, overflow: "hidden" }}>
         <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ display: "block" }}>
-          {/* Grid lines */}
           {yTicks.map((tick, i) => (
             <g key={i}>
-              <line x1={PAD.left} y1={yPos(tick)} x2={PAD.left + chartW} y2={yPos(tick)}
-                stroke="#f1f5f9" strokeWidth="1" />
-              <text x={PAD.left - 8} y={yPos(tick) + 4} textAnchor="end"
-                style={{ fontSize: 10, fill: "#94a3b8", fontFamily: "system-ui" }}>
-                {fmtAED(tick)}
-              </text>
+              <line x1={PAD.left} y1={yPos(tick)} x2={PAD.left + chartW} y2={yPos(tick)} stroke="#f1f5f9" strokeWidth="1" />
+              <text x={PAD.left - 8} y={yPos(tick) + 4} textAnchor="end" style={{ fontSize: 10, fill: "#94a3b8", fontFamily: "system-ui" }}>{fmtAED(tick)}</text>
             </g>
           ))}
-
-          {/* X axis labels */}
           {weeks.map((w, i) => {
-            // Show every label if <=12 weeks, else every 2nd
             if (weeks.length > 12 && i % 2 !== 0) return null;
-            return (
-              <text key={i} x={xPos(i)} y={PAD.top + chartH + 20}
-                textAnchor="middle" style={{ fontSize: 9, fill: "#94a3b8", fontFamily: "system-ui" }}>
-                {formatWeekLabel(w)}
-              </text>
-            );
+            return (<text key={i} x={xPos(i)} y={PAD.top + chartH + 20} textAnchor="middle" style={{ fontSize: 9, fill: "#94a3b8", fontFamily: "system-ui" }}>{formatWeekLabel(w)}</text>);
           })}
-
-          {/* X axis week tick marks */}
           {weeks.map((w, i) => (
-            <line key={i} x1={xPos(i)} y1={PAD.top + chartH} x2={xPos(i)} y2={PAD.top + chartH + 4}
-              stroke="#e2e8f0" strokeWidth="1" />
+            <line key={i} x1={xPos(i)} y1={PAD.top + chartH} x2={xPos(i)} y2={PAD.top + chartH + 4} stroke="#e2e8f0" strokeWidth="1" />
           ))}
-
-          {/* Today vertical marker */}
           {todayIdx >= 0 && (
             <g>
-              <line x1={xPos(todayIdx)} y1={PAD.top} x2={xPos(todayIdx)} y2={PAD.top + chartH}
-                stroke="#0ea5e9" strokeWidth="1" strokeDasharray="4,3" opacity="0.6" />
-              <text x={xPos(todayIdx) + 4} y={PAD.top + 12}
-                style={{ fontSize: 9, fill: "#0ea5e9", fontFamily: "system-ui", fontWeight: 700 }}>
-                Today
-              </text>
+              <line x1={xPos(todayIdx)} y1={PAD.top} x2={xPos(todayIdx)} y2={PAD.top + chartH} stroke="#0ea5e9" strokeWidth="1" strokeDasharray="4,3" opacity="0.6" />
+              <text x={xPos(todayIdx) + 4} y={PAD.top + 12} style={{ fontSize: 9, fill: "#0ea5e9", fontFamily: "system-ui", fontWeight: 700 }}>Today</text>
             </g>
           )}
-
-          {/* Axes */}
-          <line x1={PAD.left} y1={PAD.top} x2={PAD.left} y2={PAD.top + chartH}
-            stroke="#e2e8f0" strokeWidth="1.5" />
-          <line x1={PAD.left} y1={PAD.top + chartH} x2={PAD.left + chartW} y2={PAD.top + chartH}
-            stroke="#e2e8f0" strokeWidth="1.5" />
-
-          {/* Y axis label */}
-          <text x={16} y={PAD.top + chartH / 2} textAnchor="middle"
-            transform={`rotate(-90, 16, ${PAD.top + chartH / 2})`}
-            style={{ fontSize: 10, fill: "#94a3b8", fontFamily: "system-ui", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase" }}>
-            AED
-          </text>
-
-          {/* X axis label */}
-          <text x={PAD.left + chartW / 2} y={H - 6} textAnchor="middle"
-            style={{ fontSize: 10, fill: "#94a3b8", fontFamily: "system-ui", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase" }}>
-            Weeks
-          </text>
-
-          {/* Internal Budget line (green) */}
-          {hasInternalData && (
-            <path d={buildPath(dataPoints, "internal")}
-              fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-          )}
-
-          {/* Actual Spent line (red) */}
-          {hasActualData && (
-            <path d={buildPath(dataPoints, "actual")}
-              fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-          )}
-
-          {/* Data point dots - Internal Budget */}
+          <line x1={PAD.left} y1={PAD.top} x2={PAD.left} y2={PAD.top + chartH} stroke="#e2e8f0" strokeWidth="1.5" />
+          <line x1={PAD.left} y1={PAD.top + chartH} x2={PAD.left + chartW} y2={PAD.top + chartH} stroke="#e2e8f0" strokeWidth="1.5" />
+          <text x={16} y={PAD.top + chartH / 2} textAnchor="middle" transform={`rotate(-90, 16, ${PAD.top + chartH / 2})`} style={{ fontSize: 10, fill: "#94a3b8", fontFamily: "system-ui", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase" }}>AED</text>
+          <text x={PAD.left + chartW / 2} y={H - 6} textAnchor="middle" style={{ fontSize: 10, fill: "#94a3b8", fontFamily: "system-ui", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase" }}>Weeks</text>
+          {hasInternalData && (<path d={buildPath(dataPoints, "internal")} fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />)}
+          {hasActualData && (<path d={buildPath(dataPoints, "actual")} fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />)}
           {dataPoints.map((pt, i) => pt.internal !== null && (
             <g key={`ib-${i}`}>
-              <circle cx={xPos(i)} cy={yPos(pt.internal)} r={4}
-                fill="#22c55e" stroke="#ffffff" strokeWidth="1.5" />
+              <circle cx={xPos(i)} cy={yPos(pt.internal)} r={4} fill="#22c55e" stroke="#ffffff" strokeWidth="1.5" />
               <title>Internal Budget — {pt.label}: AED {pt.internal.toLocaleString()}</title>
             </g>
           ))}
-
-          {/* Data point dots - Actual Spent */}
           {dataPoints.map((pt, i) => pt.actual !== null && (
             <g key={`as-${i}`}>
-              <circle cx={xPos(i)} cy={yPos(pt.actual)} r={4}
-                fill="#ef4444" stroke="#ffffff" strokeWidth="1.5" />
+              <circle cx={xPos(i)} cy={yPos(pt.actual)} r={4} fill="#ef4444" stroke="#ffffff" strokeWidth="1.5" />
               <title>Actual Spent — {pt.label}: AED {pt.actual.toLocaleString()}</title>
             </g>
           ))}
-
-          {/* Empty state message */}
           {!hasInternalData && !hasActualData && (
-            <text x={W / 2} y={H / 2} textAnchor="middle"
-              style={{ fontSize: 12, fill: "#cbd5e1", fontFamily: "system-ui" }}>
-              Data captured every Monday at 18:00 — no snapshots yet
+            <text x={W / 2} y={H / 2} textAnchor="middle" style={{ fontSize: 12, fill: "#cbd5e1", fontFamily: "system-ui" }}>
+              Data captured every Monday at 18:00 — click Update to record now
             </text>
           )}
         </svg>
+      </div>
+
+      {/* ── Update button row ── */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 12, marginTop: 10 }}>
+        {justUpdated && (
+          <span style={{ fontSize: 11, color: "#10b981", fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
+            <span style={{ fontSize: 13 }}>✓</span> Chart updated for week of {currentWeekLabel}
+          </span>
+        )}
+        {currentSnap && !justUpdated && (
+          <span style={{ fontSize: 11, color: "#94a3b8" }}>
+            Week of {currentWeekLabel}: Budget {parseVal(internalBudget).toLocaleString()} · Spent {parseVal(actualSpent).toLocaleString()}
+          </span>
+        )}
+        <button
+          onClick={handleUpdate}
+          style={{
+            background: "#0f172a",
+            color: "#ffffff",
+            border: "none",
+            borderRadius: 4,
+            padding: "6px 16px",
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: "0.06em",
+            textTransform: "uppercase",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+          }}
+        >
+          <span style={{ fontSize: 12 }}>↻</span> Update Chart
+        </button>
       </div>
     </div>
   );
@@ -481,7 +457,6 @@ export default function App() {
     return () => { const el = document.getElementById("dt-print-styles"); if (el) el.remove(); };
   }, []);
 
-  // Auto-save on data change
   useEffect(() => {
     if (!loaded) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
@@ -494,34 +469,43 @@ export default function App() {
     return () => clearTimeout(saveTimer.current);
   }, [data, loaded]);
 
-  // Weekly snapshot: check every minute if it is Monday 18:00 and record values
+  // Auto-snapshot every Monday at 18:00
   useEffect(() => {
     if (!loaded) return;
     const takeSnapshotIfDue = () => {
       const now = new Date();
-      // Must be Monday (day 1) and hour 18
       if (now.getDay() !== 1 || now.getHours() !== 18) return;
       const key = getMondaySnapshotKey(now);
       setData(prev => {
         const existing = prev.budgetHistory || {};
-        if (existing[key]) return prev; // already captured this week
+        if (existing[key]) return prev;
         const parseVal = v => parseFloat((v || "").replace(/[^0-9.-]/g, "")) || 0;
-        const snap = {
-          internalBudget: parseVal(prev.internalBudget),
-          actualSpent: parseVal(prev.actualSpent),
-          ts: now.toISOString(),
-        };
+        const snap = { internalBudget: parseVal(prev.internalBudget), actualSpent: parseVal(prev.actualSpent), ts: now.toISOString() };
         return { ...prev, budgetHistory: { ...existing, [key]: snap } };
       });
     };
-    takeSnapshotIfDue(); // check immediately on load
-    snapshotTimer.current = setInterval(takeSnapshotIfDue, 60000); // check every minute
+    takeSnapshotIfDue();
+    snapshotTimer.current = setInterval(takeSnapshotIfDue, 60000);
     return () => clearInterval(snapshotTimer.current);
   }, [loaded]);
 
-  const set = useCallback((key, val) => {
-    setData(prev => ({ ...prev, [key]: val }));
+  // Manual update: overwrite the current week's snapshot with the latest live values
+  const handleManualUpdate = useCallback(() => {
+    const now = new Date();
+    const key = getMondaySnapshotKey(now);
+    setData(prev => {
+      const parseVal = v => parseFloat((v || "").replace(/[^0-9.-]/g, "")) || 0;
+      const snap = {
+        internalBudget: parseVal(prev.internalBudget),
+        actualSpent: parseVal(prev.actualSpent),
+        ts: now.toISOString(),
+        manuallyUpdated: true,
+      };
+      return { ...prev, budgetHistory: { ...(prev.budgetHistory || {}), [key]: snap } };
+    });
   }, []);
+
+  const set = useCallback((key, val) => { setData(prev => ({ ...prev, [key]: val })); }, []);
 
   const setProgramRow = useCallback((i, field, val) => {
     setData(prev => {
@@ -627,6 +611,7 @@ export default function App() {
             budgetHistory={data.budgetHistory || {}}
             internalBudget={data.internalBudget}
             actualSpent={data.actualSpent}
+            onManualUpdate={handleManualUpdate}
           />
         </>}
         <PageBreak />
