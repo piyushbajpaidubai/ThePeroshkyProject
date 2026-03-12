@@ -35,6 +35,17 @@ function getMondaySnapshotKey(date) {
   d.setHours(18, 0, 0, 0);
   return d.toISOString().slice(0, 13);
 }
+function keyToDate(key) {
+  return new Date(key + ':00:00');
+}
+function getNextMondayKey(date) {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diffToMon = day === 1 ? 0 : day === 0 ? 1 : 8 - day;
+  d.setDate(d.getDate() + diffToMon);
+  d.setHours(18, 0, 0, 0);
+  return d.toISOString().slice(0, 13);
+}
 
 // Generate all Monday dates (18:00) from Mar 16 2026 through 4 weeks past current week
 function generateWeekLabels() {
@@ -96,13 +107,13 @@ function StatusBadge({ value, onChange }) {
   const options = ["Signed", "Pending", "LOA Issued", "Awaited"];
   const colors = { Signed: { bg: "#dcfce7", fg: "#166534" }, Pending: { bg: "#fef9c3", fg: "#854d0e" }, "LOA Issued": { bg: "#dbeafe", fg: "#1e40af" }, Awaited: { bg: "#fee2e2", fg: "#991b1b" }, "": { bg: "#f1f5f9", fg: "#64748b" } };
   const c = colors[value] || colors[""];
-  return (<div style={{ position: "relative", display: "inline-block" }}><select value={value} onChange={e => onChange(e.target.value)} style={{ appearance: "none", background: c.bg, color: c.fg, border: "none", borderRadius: 4, padding: "3px 24px 3px 10px", fontSize: 12, fontWeight: 600, cursor: "pointer", outline: "none" }}><option value="">Select</option>{options.map(o => <option key={o}>{o}</option>)}</select><span style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", fontSize: 10, color: c.fg }}>▾</span></div>);
+  return (<div style={{ position: "relative", display: "inline-block" }}><select value={value} onChange={e => onChange(e.target.value)} style={{ appearance: "none", background: c.bg, color: c.fg, border: "none", borderRadius: 4, padding: "3px 24px 3px 10px", fontSize: 12, fontWeight: 600, cursor: "pointer", outline: "none" }}><option value="">Select</option>{options.map(o => <option key={o}>{o}</option>)}</select><span style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", fontSize: 10, color: c.fg }}>â¾</span></div>);
 }
 
 function BudgetStatusBadge({ value, onChange }) {
   const opts = ["Approved", "Pending"];
   const c = value === "Approved" ? { bg: "#dcfce7", fg: "#166534" } : { bg: "#fef9c3", fg: "#854d0e" };
-  return (<div style={{ position: "relative", display: "inline-block" }}><select value={value} onChange={e => onChange(e.target.value)} style={{ appearance: "none", background: c.bg, color: c.fg, border: "none", borderRadius: 4, padding: "3px 24px 3px 10px", fontSize: 12, fontWeight: 600, cursor: "pointer", outline: "none" }}><option value="">Select</option>{opts.map(o => <option key={o}>{o}</option>)}</select><span style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", fontSize: 10, color: c.fg }}>▾</span></div>);
+  return (<div style={{ position: "relative", display: "inline-block" }}><select value={value} onChange={e => onChange(e.target.value)} style={{ appearance: "none", background: c.bg, color: c.fg, border: "none", borderRadius: 4, padding: "3px 24px 3px 10px", fontSize: 12, fontWeight: 600, cursor: "pointer", outline: "none" }}><option value="">Select</option>{opts.map(o => <option key={o}>{o}</option>)}</select><span style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", fontSize: 10, color: c.fg }}>â¾</span></div>);
 }
 
 function RiskStatusBar({ value, onChange }) {
@@ -121,7 +132,7 @@ function RiskStatusBar({ value, onChange }) {
         <option value="">Select</option>
         {opts.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
-      <span style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", fontSize: 10, color: fg }}>▾</span>
+      <span style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", fontSize: 10, color: fg }}>â¾</span>
     </div>
   );
 }
@@ -139,7 +150,7 @@ function SectionHead({ title, index }) {
     <div style={{ marginBottom: 20 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
         <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", color: "#94a3b8", textTransform: "uppercase", whiteSpace: "nowrap" }}>
-          {String(index + 1).padStart(2, "0")} · {title}
+          {String(index + 1).padStart(2, "0")} Â· {title}
         </div>
         <div style={{ flex: 1, height: 1, background: "#e2e8f0" }} />
       </div>
@@ -163,7 +174,7 @@ function ActionTable({ rows, onChange }) {
               <td style={styles.td}><input value={row.action} onChange={e => onChange(i, "action", e.target.value)} placeholder="Enter action item..." style={styles.inlineInput} /></td>
               <td style={styles.td}><input value={row.owner} onChange={e => onChange(i, "owner", e.target.value)} placeholder="Name" style={{ ...styles.inlineInput, textAlign: "center" }} /></td>
               <td style={styles.td}><RiskStatusBar value={row.status || ""} onChange={v => onChange(i, "status", v)} /></td>
-              <td style={styles.td}><button onClick={() => { const next = rows.filter((_, j) => j !== i); onChange("_replace", null, next); }} style={styles.delBtn}>×</button></td>
+              <td style={styles.td}><button onClick={() => { const next = rows.filter((_, j) => j !== i); onChange("_replace", null, next); }} style={styles.delBtn}>Ã</button></td>
             </tr>
           ))}
         </tbody>
@@ -174,7 +185,7 @@ function ActionTable({ rows, onChange }) {
 }
 
 function ProgramTable({ rows, onChange }) {
-  return (<div style={{ marginBottom: 8 }}><table style={{ width: "100%", borderCollapse: "collapse" }}><thead><tr><th style={{ ...styles.th, textAlign: "left", width: "34%" }}>Stage</th><th style={{ ...styles.th, textAlign: "left" }}>Baseline Duration</th><th style={{ ...styles.th, textAlign: "left" }}>Actual Duration</th><th style={{ ...styles.th, width: 32 }}></th></tr></thead><tbody>{rows.map((row, i) => (<tr key={i}><td style={styles.td}><input value={row.stage} onChange={e => onChange(i, "stage", e.target.value)} placeholder="Stage name" style={styles.inlineInput} /></td><td style={styles.td}><input value={row.baseline} onChange={e => onChange(i, "baseline", e.target.value)} placeholder="e.g. 8 weeks" style={styles.inlineInput} /></td><td style={styles.td}><input value={row.actual} onChange={e => onChange(i, "actual", e.target.value)} placeholder="e.g. 10 weeks" style={styles.inlineInput} /></td><td style={styles.td}><button onClick={() => { const next = rows.filter((_, j) => j !== i); onChange("_replace", null, next); }} style={styles.delBtn}>×</button></td></tr>))}</tbody></table><button onClick={() => onChange("_add", null, null)} style={styles.addBtn}>+ Add stage</button></div>);
+  return (<div style={{ marginBottom: 8 }}><table style={{ width: "100%", borderCollapse: "collapse" }}><thead><tr><th style={{ ...styles.th, textAlign: "left", width: "34%" }}>Stage</th><th style={{ ...styles.th, textAlign: "left" }}>Baseline Duration</th><th style={{ ...styles.th, textAlign: "left" }}>Actual Duration</th><th style={{ ...styles.th, width: 32 }}></th></tr></thead><tbody>{rows.map((row, i) => (<tr key={i}><td style={styles.td}><input value={row.stage} onChange={e => onChange(i, "stage", e.target.value)} placeholder="Stage name" style={styles.inlineInput} /></td><td style={styles.td}><input value={row.baseline} onChange={e => onChange(i, "baseline", e.target.value)} placeholder="e.g. 8 weeks" style={styles.inlineInput} /></td><td style={styles.td}><input value={row.actual} onChange={e => onChange(i, "actual", e.target.value)} placeholder="e.g. 10 weeks" style={styles.inlineInput} /></td><td style={styles.td}><button onClick={() => { const next = rows.filter((_, j) => j !== i); onChange("_replace", null, next); }} style={styles.delBtn}>Ã</button></td></tr>))}</tbody></table><button onClick={() => onChange("_add", null, null)} style={styles.addBtn}>+ Add stage</button></div>);
 }
 
 function CombinedPaymentTable({ rows, onChange }) {
@@ -182,9 +193,9 @@ function CombinedPaymentTable({ rows, onChange }) {
   const statusColors = { Paid: { bg: "#dcfce7", fg: "#166534" }, "In Progress": { bg: "#fef9c3", fg: "#854d0e" }, Overdue: { bg: "#fee2e2", fg: "#991b1b" }, Partial: { bg: "#dbeafe", fg: "#1e40af" }, "": { bg: "#f1f5f9", fg: "#64748b" } };
   function StatusSelect({ value, onChange }) {
     const c = statusColors[value] || statusColors[""];
-    return (<div style={{ position: "relative", display: "inline-block" }}><select value={value} onChange={e => onChange(e.target.value)} style={{ appearance: "none", background: c.bg, color: c.fg, border: "none", borderRadius: 4, padding: "3px 24px 3px 10px", fontSize: 12, fontWeight: 600, cursor: "pointer", outline: "none", width: "100%" }}><option value="">Select</option>{statusOptions.map(o => <option key={o}>{o}</option>)}</select><span style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", fontSize: 10, color: c.fg }}>▾</span></div>);
+    return (<div style={{ position: "relative", display: "inline-block" }}><select value={value} onChange={e => onChange(e.target.value)} style={{ appearance: "none", background: c.bg, color: c.fg, border: "none", borderRadius: 4, padding: "3px 24px 3px 10px", fontSize: 12, fontWeight: 600, cursor: "pointer", outline: "none", width: "100%" }}><option value="">Select</option>{statusOptions.map(o => <option key={o}>{o}</option>)}</select><span style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", fontSize: 10, color: c.fg }}>â¾</span></div>);
   }
-  return (<div style={{ marginBottom: 8 }}><table style={{ width: "100%", borderCollapse: "collapse" }}><thead><tr><th style={{ ...styles.th, textAlign: "left", width: "50%" }}>Invoice Milestone</th><th style={{ ...styles.th, textAlign: "center", width: "22%" }}>Client Status</th><th style={{ ...styles.th, textAlign: "center", width: "22%" }}>Sub-Consultant Status</th><th style={{ ...styles.th, width: 32 }}></th></tr></thead><tbody>{rows.map((row, i) => (<tr key={i}><td style={styles.td}><input value={row.milestone} onChange={e => onChange(i, "milestone", e.target.value)} placeholder="e.g. Invoice 01 - Concept Design" style={styles.inlineInput} /></td><td style={{ ...styles.td, textAlign: "center" }}><StatusSelect value={row.clientStatus || ""} onChange={v => onChange(i, "clientStatus", v)} /></td><td style={{ ...styles.td, textAlign: "center" }}><StatusSelect value={row.subsStatus || ""} onChange={v => onChange(i, "subsStatus", v)} /></td><td style={styles.td}><button onClick={() => { const next = rows.filter((_, j) => j !== i); onChange("_replace", null, next); }} style={styles.delBtn}>×</button></td></tr>))}</tbody></table><button onClick={() => onChange("_add", null, null)} style={styles.addBtn}>+ Add row</button></div>);
+  return (<div style={{ marginBottom: 8 }}><table style={{ width: "100%", borderCollapse: "collapse" }}><thead><tr><th style={{ ...styles.th, textAlign: "left", width: "50%" }}>Invoice Milestone</th><th style={{ ...styles.th, textAlign: "center", width: "22%" }}>Client Status</th><th style={{ ...styles.th, textAlign: "center", width: "22%" }}>Sub-Consultant Status</th><th style={{ ...styles.th, width: 32 }}></th></tr></thead><tbody>{rows.map((row, i) => (<tr key={i}><td style={styles.td}><input value={row.milestone} onChange={e => onChange(i, "milestone", e.target.value)} placeholder="e.g. Invoice 01 - Concept Design" style={styles.inlineInput} /></td><td style={{ ...styles.td, textAlign: "center" }}><StatusSelect value={row.clientStatus || ""} onChange={v => onChange(i, "clientStatus", v)} /></td><td style={{ ...styles.td, textAlign: "center" }}><StatusSelect value={row.subsStatus || ""} onChange={v => onChange(i, "subsStatus", v)} /></td><td style={styles.td}><button onClick={() => { const next = rows.filter((_, j) => j !== i); onChange("_replace", null, next); }} style={styles.delBtn}>Ã</button></td></tr>))}</tbody></table><button onClick={() => onChange("_add", null, null)} style={styles.addBtn}>+ Add row</button></div>);
 }
 
 function CashVarianceIndicator({ invoiceIssued, actualSpent, externalSpent }) {
@@ -192,8 +203,8 @@ function CashVarianceIndicator({ invoiceIssued, actualSpent, externalSpent }) {
   const variance = parse(invoiceIssued) - parse(actualSpent) - parse(externalSpent);
   const isPos = variance >= 0;
   const isEmpty = !invoiceIssued && !actualSpent && !externalSpent;
-  const formatted = isEmpty ? "—" : (isPos ? "+" : "") + variance.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-  return (<div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: isEmpty ? "#f1f5f9" : isPos ? "#dcfce7" : "#fee2e2", color: isEmpty ? "#64748b" : isPos ? "#166534" : "#991b1b", borderRadius: 4, padding: "4px 12px", fontSize: 13, fontWeight: 700 }}>{!isEmpty && <span style={{ fontSize: 11 }}>{isPos ? "▲" : "▼"}</span>}Cash Variance: {formatted}</div>);
+  const formatted = isEmpty ? "â" : (isPos ? "+" : "") + variance.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  return (<div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: isEmpty ? "#f1f5f9" : isPos ? "#dcfce7" : "#fee2e2", color: isEmpty ? "#64748b" : isPos ? "#166534" : "#991b1b", borderRadius: 4, padding: "4px 12px", fontSize: 13, fontWeight: 700 }}>{!isEmpty && <span style={{ fontSize: 11 }}>{isPos ? "â²" : "â¼"}</span>}Cash Variance: {formatted}</div>);
 }
 
 function BalanceIndicator({ available, spent }) {
@@ -201,8 +212,8 @@ function BalanceIndicator({ available, spent }) {
   const sp = parseFloat(spent.replace(/[^0-9.-]/g, "")) || 0;
   const balance = av - sp;
   const isPos = balance >= 0;
-  const formatted = balance === 0 ? "—" : (isPos ? "+" : "") + balance.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-  return (<div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: balance === 0 ? "#f1f5f9" : isPos ? "#dcfce7" : "#fee2e2", color: balance === 0 ? "#64748b" : isPos ? "#166534" : "#991b1b", borderRadius: 4, padding: "4px 12px", fontSize: 13, fontWeight: 700 }}>{balance !== 0 && <span style={{ fontSize: 11 }}>{isPos ? "▲" : "▼"}</span>}Balance: {formatted}</div>);
+  const formatted = balance === 0 ? "â" : (isPos ? "+" : "") + balance.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  return (<div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: balance === 0 ? "#f1f5f9" : isPos ? "#dcfce7" : "#fee2e2", color: balance === 0 ? "#64748b" : isPos ? "#166534" : "#991b1b", borderRadius: 4, padding: "4px 12px", fontSize: 13, fontWeight: 700 }}>{balance !== 0 && <span style={{ fontSize: 11 }}>{isPos ? "â²" : "â¼"}</span>}Balance: {formatted}</div>);
 }
 
 function CPIIndicator({ contractValue, progressPct, externalSpent, actualSpent }) {
@@ -211,9 +222,9 @@ function CPIIndicator({ contractValue, progressPct, externalSpent, actualSpent }
   const totalSpent = parse(externalSpent) + parse(actualSpent);
   const isEmpty = !contractValue && !progressPct && !externalSpent && !actualSpent;
   const cpi = (!isEmpty && totalSpent !== 0) ? (earned / totalSpent) : null;
-  const formatted = cpi === null ? "—" : cpi.toFixed(2);
+  const formatted = cpi === null ? "â" : cpi.toFixed(2);
   const isGood = cpi !== null && cpi >= 1;
-  return (<div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: cpi === null ? "#f1f5f9" : isGood ? "#dcfce7" : "#fee2e2", color: cpi === null ? "#64748b" : isGood ? "#166534" : "#991b1b", borderRadius: 4, padding: "4px 12px", fontSize: 13, fontWeight: 700 }}>{cpi !== null && <span style={{ fontSize: 11 }}>{isGood ? "▲" : "▼"}</span>}CPI: {formatted}</div>);
+  return (<div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: cpi === null ? "#f1f5f9" : isGood ? "#dcfce7" : "#fee2e2", color: cpi === null ? "#64748b" : isGood ? "#166534" : "#991b1b", borderRadius: 4, padding: "4px 12px", fontSize: 13, fontWeight: 700 }}>{cpi !== null && <span style={{ fontSize: 11 }}>{isGood ? "â²" : "â¼"}</span>}CPI: {formatted}</div>);
 }
 
 function CriticalIssuesTable({ rows, onChange }) {
@@ -232,7 +243,7 @@ function CriticalIssuesTable({ rows, onChange }) {
               <td style={styles.tdNum}>{String(i + 1).padStart(2, "0")}</td>
               <td style={styles.td}><input value={row.issue} onChange={e => onChange(i, "issue", e.target.value)} placeholder="Describe issue or risk..." style={styles.inlineInput} /></td>
               <td style={styles.td}><RiskStatusBar value={row.status || ""} onChange={v => onChange(i, "status", v)} /></td>
-              <td style={styles.td}><button onClick={() => { const next = rows.filter((_, j) => j !== i); onChange("_replace", null, next); }} style={styles.delBtn}>×</button></td>
+              <td style={styles.td}><button onClick={() => { const next = rows.filter((_, j) => j !== i); onChange("_replace", null, next); }} style={styles.delBtn}>Ã</button></td>
             </tr>
           ))}
         </tbody>
@@ -242,7 +253,7 @@ function CriticalIssuesTable({ rows, onChange }) {
   );
 }
 
-// ─── BUDGET TREND CHART ───────────────────────────────────────────────────────
+// âââ BUDGET TREND CHART âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function BudgetTrendChart({ budgetHistory, internalBudget, actualSpent, onManualUpdate }) {
   const W = 820, H = 320;
   const PAD = { top: 24, right: 24, bottom: 52, left: 88 };
@@ -306,7 +317,7 @@ function BudgetTrendChart({ budgetHistory, internalBudget, actualSpent, onManual
   // Determine current week key and its snapshot values for the Update button label
   const currentKey = getMondaySnapshotKey(now);
   const currentSnap = budgetHistory[currentKey];
-  const currentWeekLabel = formatWeekLabel(new Date(currentKey));
+  const currentWeekLabel = formatWeekLabel(keyToDate(currentKey));
 
   const handleUpdate = () => {
     onManualUpdate();
@@ -318,7 +329,7 @@ function BudgetTrendChart({ budgetHistory, internalBudget, actualSpent, onManual
     <div style={{ marginTop: 28, marginBottom: 8 }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
         <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "#94a3b8", textTransform: "uppercase" }}>
-          Budget Trend — Weekly Snapshot (Mondays 18:00)
+          Budget Trend â Weekly Snapshot (Mondays 18:00)
         </div>
         <div style={{ display: "flex", gap: 20, alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -361,33 +372,33 @@ function BudgetTrendChart({ budgetHistory, internalBudget, actualSpent, onManual
           {dataPoints.map((pt, i) => pt.internal !== null && (
             <g key={`ib-${i}`}>
               <circle cx={xPos(i)} cy={yPos(pt.internal)} r={4} fill="#22c55e" stroke="#ffffff" strokeWidth="1.5" />
-              <title>Internal Budget — {pt.label}: AED {pt.internal.toLocaleString()}</title>
+              <title>Internal Budget â {pt.label}: AED {pt.internal.toLocaleString()}</title>
             </g>
           ))}
           {dataPoints.map((pt, i) => pt.actual !== null && (
             <g key={`as-${i}`}>
               <circle cx={xPos(i)} cy={yPos(pt.actual)} r={4} fill="#ef4444" stroke="#ffffff" strokeWidth="1.5" />
-              <title>Actual Spent — {pt.label}: AED {pt.actual.toLocaleString()}</title>
+              <title>Actual Spent â {pt.label}: AED {pt.actual.toLocaleString()}</title>
             </g>
           ))}
           {!hasInternalData && !hasActualData && (
             <text x={W / 2} y={H / 2} textAnchor="middle" style={{ fontSize: 12, fill: "#cbd5e1", fontFamily: "system-ui" }}>
-              Data captured every Monday at 18:00 — click Update to record now
+              Data captured every Monday at 18:00 â click Update to record now
             </text>
           )}
         </svg>
       </div>
 
-      {/* ── Update button row ── */}
+      {/* ââ Update button row ââ */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 12, marginTop: 10 }}>
         {justUpdated && (
           <span style={{ fontSize: 11, color: "#10b981", fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
-            <span style={{ fontSize: 13 }}>✓</span> Chart updated for week of {currentWeekLabel}
+            <span style={{ fontSize: 13 }}>â</span> Chart updated for week of {currentWeekLabel}
           </span>
         )}
         {currentSnap && !justUpdated && (
           <span style={{ fontSize: 11, color: "#94a3b8" }}>
-            Week of {currentWeekLabel}: Budget {parseVal(internalBudget).toLocaleString()} · Spent {parseVal(actualSpent).toLocaleString()}
+            Week of {currentWeekLabel}: Budget {parseVal(internalBudget).toLocaleString()} Â· Spent {parseVal(actualSpent).toLocaleString()}
           </span>
         )}
         <button
@@ -408,7 +419,7 @@ function BudgetTrendChart({ budgetHistory, internalBudget, actualSpent, onManual
             gap: 6,
           }}
         >
-          <span style={{ fontSize: 12 }}>↻</span> Update Chart
+          <span style={{ fontSize: 12 }}>â»</span> Update Chart
         </button>
       </div>
     </div>
@@ -492,7 +503,7 @@ export default function App() {
   // Manual update: overwrite the current week's snapshot with the latest live values
   const handleManualUpdate = useCallback(() => {
     const now = new Date();
-    const key = getMondaySnapshotKey(now);
+    const key = getNextMondayKey(now);
     setData(prev => {
       const parseVal = v => parseFloat((v || "").replace(/[^0-9.-]/g, "")) || 0;
       const snap = {
@@ -546,9 +557,9 @@ export default function App() {
       <div style={{ position: "sticky", top: 0, zIndex: 100, background: "#ffffff", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", padding: "0 32px", height: 52, gap: 20 }}>
         <div style={{ fontWeight: 800, fontSize: 15, letterSpacing: "0.05em", color: "#0f172a", borderRight: "1px solid #e2e8f0", paddingRight: 20, marginRight: 4 }}>DesignTomorrow</div>
         <input value={data.projectCode} onChange={e => set("projectCode", e.target.value)} placeholder="PROJECT CODE" style={{ ...navInput, width: 110, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }} />
-        <span style={{ color: "#e2e8f0" }}>·</span>
+        <span style={{ color: "#e2e8f0" }}>Â·</span>
         <input value={data.projectName} onChange={e => set("projectName", e.target.value)} placeholder="Project Name" style={{ ...navInput, width: 200 }} />
-        <span style={{ color: "#e2e8f0" }}>·</span>
+        <span style={{ color: "#e2e8f0" }}>Â·</span>
         <input value={data.client} onChange={e => set("client", e.target.value)} placeholder="Client" style={{ ...navInput, width: 160 }} />
         <div style={{ flex: 1 }} />
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -559,13 +570,13 @@ export default function App() {
           {saving ? "Saving..." : savedAt ? `Saved ${savedAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}` : "Saved"}
         </div>
         <button className="no-print" onClick={() => window.print()} style={{ marginLeft: 16, background: "#0f172a", color: "#ffffff", border: "none", borderRadius: 4, padding: "6px 14px", fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}>
-          <span style={{ fontSize: 13 }}>⬇</span> Download PDF
+          <span style={{ fontSize: 13 }}>â¬</span> Download PDF
         </button>
       </div>
 
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "40px 32px 80px" }}>
 
-        {/* 01 · PROJECT OVERVIEW */}
+        {/* 01 Â· PROJECT OVERVIEW */}
         <SectionHead title="Project Overview" index={0} />
         <TwoCol>
           <Field label="Key Personnel / Project Lead" value={data.keyPersonnel} onChange={v => set("keyPersonnel", v)} placeholder="Enter project lead name" />
@@ -575,7 +586,7 @@ export default function App() {
         <Field label="Contract Value" value={data.contractValue} onChange={v => set("contractValue", v)} placeholder="AED" />
         <PageBreak />
 
-        {/* 02 · PROJECT STATUS */}
+        {/* 02 Â· PROJECT STATUS */}
         <SectionHead title="Project Status" index={1} />
         <Field label="Current Stage & Status" value={data.projectStatus} onChange={v => set("projectStatus", v)} placeholder="Enter current stage" />
         <ProgressBar value={data.progressPct} onChange={v => set("progressPct", v)} />
@@ -585,7 +596,7 @@ export default function App() {
         </TwoCol>
         <PageBreak />
 
-        {/* 03 · BUDGET & FINANCIALS */}
+        {/* 03 Â· BUDGET & FINANCIALS */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
           <SectionHead title="Budget & Financials" index={2} />
           <button onClick={() => setHideBudget(h => !h)} style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", background: "none", border: "1px solid #e2e8f0", borderRadius: 4, color: "#94a3b8", cursor: "pointer", padding: "3px 10px", marginBottom: 20 }}>{hideBudget ? "Show" : "Hide"}</button>
@@ -616,31 +627,31 @@ export default function App() {
         </>}
         <PageBreak />
 
-        {/* 04 · PAYMENT STATUS */}
+        {/* 04 Â· PAYMENT STATUS */}
         <SectionHead title="Payment Status" index={3} />
         <CombinedPaymentTable rows={data.paymentRows} onChange={(i, field, val) => setPaymentRow(i, field, val)} />
         <PageBreak />
 
-        {/* 05 · PROGRAM */}
+        {/* 05 Â· PROGRAM */}
         <SectionHead title="Program" index={4} />
         <ProgramTable rows={data.programRows} onChange={setProgramRow} />
         <PageBreak />
 
-        {/* 06 · VARIATIONS & RISKS */}
+        {/* 06 Â· VARIATIONS & RISKS */}
         <SectionHead title="Variations & Risks" index={5} />
         <Field label="Potential Variations - Plan of Action" value={data.potentialVariations} onChange={v => set("potentialVariations", v)} type="textarea" placeholder="Note potential variations" />
         <hr style={{ border: 'none', borderTop: '1px solid #e2e8f0', margin: '0 0 24px 0' }} />
         <div><div style={styles.fieldLabel}>Critical Issues &amp; Risks</div><CriticalIssuesTable rows={data.criticalIssues} onChange={(i, field, val) => setCriticalRow(i, field, val)} /></div>
         <PageBreak />
 
-        {/* 07 · ACTION LIST */}
+        {/* 07 Â· ACTION LIST */}
         <SectionHead title="Action List" index={6} />
         <ActionTable rows={data.currentActions} onChange={(i, field, val) => setActionRow("currentActions", i, field, val)} />
 
       </div>
 
       <div style={{ borderTop: "1.5px solid #000000", padding: "16px 32px", display: "flex", justifyContent: "space-between", alignItems: "center", background: "#ffffff" }}>
-        <span style={{ fontSize: 11, color: "#cbd5e1", letterSpacing: "0.06em" }}>DT ARCHITECTURE & DESIGN · CONFIDENTIAL · INTERNAL USE ONLY</span>
+        <span style={{ fontSize: 11, color: "#cbd5e1", letterSpacing: "0.06em" }}>DT ARCHITECTURE & DESIGN Â· CONFIDENTIAL Â· INTERNAL USE ONLY</span>
         <span style={{ fontSize: 11, color: "#cbd5e1" }}>{new Date().getFullYear()}</span>
       </div>
     </div>
