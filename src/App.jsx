@@ -315,7 +315,7 @@ function BudgetTrendChart({ budgetHistory, internalBudget, actualSpent, onManual
   }
 
   // Determine current week key and its snapshot values for the Update button label
-  const currentKey = getMondaySnapshotKey(now);
+  const currentKey = getNextMondayKey(now);
   const currentSnap = budgetHistory[currentKey];
   const currentWeekLabel = formatWeekLabel(keyToDate(currentKey));
 
