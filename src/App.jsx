@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+
 const STORAGE_KEY = "dt-project-dashboard-v1";
+
 async function loadData() {
   try {
     const res = await fetch("/.netlify/functions/sheets");
@@ -13,6 +15,7 @@ async function loadData() {
     return parsed;
   } catch { return null; }
 }
+
 async function saveData(data) {
   try {
     await fetch("/.netlify/functions/sheets", {
@@ -22,70 +25,118 @@ async function saveData(data) {
     });
   } catch {}
 }
+
+// Returns the Date of the most recent Monday at 18:00 local time
+function getMondaySnapshotKey(date) {
+  const d = new Date(date);
+  const day = d.getDay(); // 0=Sun,1=Mon,...
+  const diffToMon = (day === 0 ? -6 : 1 - day);
+  d.setDate(d.getDate() + diffToMon);
+  d.setHours(18, 0, 0, 0);
+  return d.toISOString().slice(0, 13); // "YYYY-MM-DDTHH"
+}
+
+// Generate all Monday dates (18:00) from Mar 16 2026 through 4 weeks past current week
+function generateWeekLabels() {
+  const start = new Date(2026, 2, 16, 18, 0, 0); // Mar 16 2026
+  const now = new Date();
+  // Find Monday of current week
+  const day = now.getDay();
+  const diffToMon = (day === 0 ? -6 : 1 - day);
+  const currentMon = new Date(now);
+  currentMon.setDate(now.getDate() + diffToMon);
+  currentMon.setHours(18, 0, 0, 0);
+  const endDate = new Date(currentMon);
+  endDate.setDate(endDate.getDate() + 28); // +4 weeks
+
+  const weeks = [];
+  let cur = new Date(start);
+  while (cur <= endDate) {
+    weeks.push(new Date(cur));
+    cur = new Date(cur);
+    cur.setDate(cur.getDate() + 7);
+  }
+  return weeks;
+}
+
+const MON_LABELS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+function formatWeekLabel(date) {
+  return MON_LABELS[date.getMonth()] + " " + date.getDate();
+}
+
 const defaultState = {
   projectCode: "", projectName: "", client: "",
   reportDate: new Date().toISOString().slice(0, 10),
   keyPersonnel: "", subconsultants: "", contractStatus: "", contractValue: "",
   budgetStatus: "", internalBudget: "", externalBudget: "", availableBudget: "",
-  actualSpent: "", invoiceIssued: "", externalSpent: "", projectStatus: "", progressPct: "", targetInvoice: "",
-  invoiceDueDate: "", paymentRows: [{ milestone: "", clientStatus: "", subsStatus: "" }, { milestone: "", clientStatus: "", subsStatus: "" }],
+  actualSpent: "", invoiceIssued: "", externalSpent: "",
+  projectStatus: "", progressPct: "", targetInvoice: "", invoiceDueDate: "",
+  budgetHistory: {},
+  paymentRows: [{ milestone: "", clientStatus: "", subsStatus: "" }, { milestone: "", clientStatus: "", subsStatus: "" }],
   programRows: [
     { stage: "", baseline: "", actual: "" },
     { stage: "", baseline: "", actual: "" },
     { stage: "", baseline: "", actual: "" },
   ],
-  potentialVariations: "", criticalIssues: [{ issue: "", status: "" }, { issue: "", status: "" }, { issue: "", status: "" }],
+  potentialVariations: "",
+  criticalIssues: [{ issue: "", status: "" }, { issue: "", status: "" }, { issue: "", status: "" }],
   currentActions: [
     { action: "", owner: "", status: "" },
     { action: "", owner: "", status: "" },
     { action: "", owner: "", status: "" },
   ],
 };
+
 function Field({ label, value, onChange, type = "text", placeholder = "", mono = false }) {
   const base = { fontFamily: mono ? "monospace" : "inherit", fontSize: 13, color: "#0f172a", background: "transparent", border: "none", borderBottom: "1.5px solid #e2e8f0", outline: "none", width: "100%", padding: "4px 0", resize: "none", lineHeight: 1.6 };
   const [focused, setFocused] = useState(false);
   if (type === "textarea") return (<div style={{ marginBottom: 14 }}>{label && <div style={styles.fieldLabel}>{label}</div>}<textarea rows={3} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} style={{ ...base, borderBottom: `1.5px solid ${focused ? "#0ea5e9" : "#e2e8f0"}`, paddingTop: 6 }} /></div>);
   return (<div style={{ marginBottom: 14 }}>{label && <div style={styles.fieldLabel}>{label}</div>}<input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} style={{ ...base, borderBottom: `1.5px solid ${focused ? "#0ea5e9" : "#e2e8f0"}` }} /></div>);
 }
+
 function StatusBadge({ value, onChange }) {
   const options = ["Signed", "Pending", "LOA Issued", "Awaited"];
   const colors = { Signed: { bg: "#dcfce7", fg: "#166534" }, Pending: { bg: "#fef9c3", fg: "#854d0e" }, "LOA Issued": { bg: "#dbeafe", fg: "#1e40af" }, Awaited: { bg: "#fee2e2", fg: "#991b1b" }, "": { bg: "#f1f5f9", fg: "#64748b" } };
   const c = colors[value] || colors[""];
   return (<div style={{ position: "relative", display: "inline-block" }}><select value={value} onChange={e => onChange(e.target.value)} style={{ appearance: "none", background: c.bg, color: c.fg, border: "none", borderRadius: 4, padding: "3px 24px 3px 10px", fontSize: 12, fontWeight: 600, cursor: "pointer", outline: "none" }}><option value="">Select</option>{options.map(o => <option key={o}>{o}</option>)}</select><span style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", fontSize: 10, color: c.fg }}>▾</span></div>);
 }
+
 function BudgetStatusBadge({ value, onChange }) {
   const opts = ["Approved", "Pending"];
   const c = value === "Approved" ? { bg: "#dcfce7", fg: "#166534" } : { bg: "#fef9c3", fg: "#854d0e" };
   return (<div style={{ position: "relative", display: "inline-block" }}><select value={value} onChange={e => onChange(e.target.value)} style={{ appearance: "none", background: c.bg, color: c.fg, border: "none", borderRadius: 4, padding: "3px 24px 3px 10px", fontSize: 12, fontWeight: 600, cursor: "pointer", outline: "none" }}><option value="">Select</option>{opts.map(o => <option key={o}>{o}</option>)}</select><span style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", fontSize: 10, color: c.fg }}>▾</span></div>);
 }
+
 function RiskStatusBar({ value, onChange }) {
-    const opts = [
-        { value: "monitor", label: "Monitor", bg: "#f97316", fg: "#ffffff" },
-            { value: "high_risk", label: "High Risk", bg: "#ef4444", fg: "#ffffff" },
-                { value: "action", label: "Action", bg: "#7f1d1d", fg: "#ffffff" },
-                    { value: "closed", label: "Closed", bg: "#9ca3af", fg: "#ffffff" },
-                      ];
-                        const selected = opts.find(o => o.value === value);
-                          const bg = selected ? selected.bg : "#f1f5f9";
-                            const fg = selected ? selected.fg : "#64748b";
-                              return (
-                                  <div style={{ position: "relative", display: "inline-block" }}>
-                                        <select value={value || ""} onChange={e => onChange(e.target.value)} style={{ appearance: "none", background: bg, color: fg, border: "none", borderRadius: 4, padding: "3px 24px 3px 10px", fontSize: 12, fontWeight: 600, cursor: "pointer", outline: "none", minWidth: 90 }}>
-                                                <option value="">Select</option>
-                                                        {opts.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                                                              </select>
-                                                                    <span style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", fontSize: 10, color: fg }}>▾</span>
-                                                                        </div>
-                                                                          );
-                                                                          }
+  const opts = [
+    { value: "monitor", label: "Monitor", bg: "#f97316", fg: "#ffffff" },
+    { value: "high_risk", label: "High Risk", bg: "#ef4444", fg: "#ffffff" },
+    { value: "action", label: "Action", bg: "#7f1d1d", fg: "#ffffff" },
+    { value: "closed", label: "Closed", bg: "#9ca3af", fg: "#ffffff" },
+  ];
+  const selected = opts.find(o => o.value === value);
+  const bg = selected ? selected.bg : "#f1f5f9";
+  const fg = selected ? selected.fg : "#64748b";
+  return (
+    <div style={{ position: "relative", display: "inline-block" }}>
+      <select value={value || ""} onChange={e => onChange(e.target.value)} style={{ appearance: "none", background: bg, color: fg, border: "none", borderRadius: 4, padding: "3px 24px 3px 10px", fontSize: 12, fontWeight: 600, cursor: "pointer", outline: "none", minWidth: 90 }}>
+        <option value="">Select</option>
+        {opts.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+      </select>
+      <span style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", fontSize: 10, color: fg }}>▾</span>
+    </div>
+  );
+}
+
 function ProgressBar({ value, onChange }) {
   const pct = Math.min(100, Math.max(0, parseInt(value) || 0));
   const color = pct < 30 ? "#f87171" : pct < 70 ? "#fbbf24" : "#34d399";
   return (<div style={{ marginBottom: 14 }}><div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 6 }}><div style={{...styles.fieldLabel, color: "#000000"}}>Overall Progress</div><input type="number" min={0} max={100} value={value} onChange={e => onChange(e.target.value)} style={{ width: 52, fontSize: 13, border: "none", borderBottom: "1.5px solid #e2e8f0", outline: "none", background: "transparent", textAlign: "right", fontWeight: 700, color: "#000000" }} /><span style={{ fontSize: 12, color: "#64748b" }}>%</span></div><div style={{ height: 6, background: "#f1f5f9", borderRadius: 99, overflow: "hidden" }}><div style={{ width: `${pct}%`, height: "100%", background: color, borderRadius: 99, transition: "width 0.4s ease" }} /></div></div>);
 }
-function PageBreak() {
-  return <div style={{ margin: "32px 0", borderTop: "1.5px dotted #000000" }} />;
-}
+
+function PageBreak() { return <div style={{ margin: "32px 0", borderTop: "1.5px dotted #000000" }} />; }
+
 function SectionHead({ title, index }) {
   return (
     <div style={{ marginBottom: 20 }}>
@@ -98,7 +149,11 @@ function SectionHead({ title, index }) {
     </div>
   );
 }
-function TwoCol({ children }) { return (<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 40px" }}>{children}</div>); }
+
+function TwoCol({ children }) {
+  return (<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 40px" }}>{children}</div>);
+}
+
 function ActionTable({ rows, onChange }) {
   return (
     <div style={{ marginBottom: 8 }}>
@@ -120,9 +175,11 @@ function ActionTable({ rows, onChange }) {
     </div>
   );
 }
+
 function ProgramTable({ rows, onChange }) {
   return (<div style={{ marginBottom: 8 }}><table style={{ width: "100%", borderCollapse: "collapse" }}><thead><tr><th style={{ ...styles.th, textAlign: "left", width: "34%" }}>Stage</th><th style={{ ...styles.th, textAlign: "left" }}>Baseline Duration</th><th style={{ ...styles.th, textAlign: "left" }}>Actual Duration</th><th style={{ ...styles.th, width: 32 }}></th></tr></thead><tbody>{rows.map((row, i) => (<tr key={i}><td style={styles.td}><input value={row.stage} onChange={e => onChange(i, "stage", e.target.value)} placeholder="Stage name" style={styles.inlineInput} /></td><td style={styles.td}><input value={row.baseline} onChange={e => onChange(i, "baseline", e.target.value)} placeholder="e.g. 8 weeks" style={styles.inlineInput} /></td><td style={styles.td}><input value={row.actual} onChange={e => onChange(i, "actual", e.target.value)} placeholder="e.g. 10 weeks" style={styles.inlineInput} /></td><td style={styles.td}><button onClick={() => { const next = rows.filter((_, j) => j !== i); onChange("_replace", null, next); }} style={styles.delBtn}>×</button></td></tr>))}</tbody></table><button onClick={() => onChange("_add", null, null)} style={styles.addBtn}>+ Add stage</button></div>);
 }
+
 function CombinedPaymentTable({ rows, onChange }) {
   const statusOptions = ["Paid", "In Progress", "Overdue", "Partial"];
   const statusColors = { Paid: { bg: "#dcfce7", fg: "#166534" }, "In Progress": { bg: "#fef9c3", fg: "#854d0e" }, Overdue: { bg: "#fee2e2", fg: "#991b1b" }, Partial: { bg: "#dbeafe", fg: "#1e40af" }, "": { bg: "#f1f5f9", fg: "#64748b" } };
@@ -141,13 +198,16 @@ function CashVarianceIndicator({ invoiceIssued, actualSpent, externalSpent }) {
   const formatted = isEmpty ? "—" : (isPos ? "+" : "") + variance.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
   return (<div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: isEmpty ? "#f1f5f9" : isPos ? "#dcfce7" : "#fee2e2", color: isEmpty ? "#64748b" : isPos ? "#166534" : "#991b1b", borderRadius: 4, padding: "4px 12px", fontSize: 13, fontWeight: 700 }}>{!isEmpty && <span style={{ fontSize: 11 }}>{isPos ? "▲" : "▼"}</span>}Cash Variance: {formatted}</div>);
 }
+
 function BalanceIndicator({ available, spent }) {
   const av = parseFloat(available.replace(/[^0-9.-]/g, "")) || 0;
   const sp = parseFloat(spent.replace(/[^0-9.-]/g, "")) || 0;
-  const balance = av - sp; const isPos = balance >= 0;
+  const balance = av - sp;
+  const isPos = balance >= 0;
   const formatted = balance === 0 ? "—" : (isPos ? "+" : "") + balance.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
   return (<div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: balance === 0 ? "#f1f5f9" : isPos ? "#dcfce7" : "#fee2e2", color: balance === 0 ? "#64748b" : isPos ? "#166534" : "#991b1b", borderRadius: 4, padding: "4px 12px", fontSize: 13, fontWeight: 700 }}>{balance !== 0 && <span style={{ fontSize: 11 }}>{isPos ? "▲" : "▼"}</span>}Balance: {formatted}</div>);
 }
+
 function CPIIndicator({ contractValue, progressPct, externalSpent, actualSpent }) {
   const parse = v => parseFloat((v || "").replace(/[^0-9.-]/g, "")) || 0;
   const earned = parse(contractValue) * (parse(progressPct) / 100);
@@ -157,7 +217,9 @@ function CPIIndicator({ contractValue, progressPct, externalSpent, actualSpent }
   const formatted = cpi === null ? "—" : cpi.toFixed(2);
   const isGood = cpi !== null && cpi >= 1;
   return (<div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: cpi === null ? "#f1f5f9" : isGood ? "#dcfce7" : "#fee2e2", color: cpi === null ? "#64748b" : isGood ? "#166534" : "#991b1b", borderRadius: 4, padding: "4px 12px", fontSize: 13, fontWeight: 700 }}>{cpi !== null && <span style={{ fontSize: 11 }}>{isGood ? "▲" : "▼"}</span>}CPI: {formatted}</div>);
-} function CriticalIssuesTable({ rows, onChange }) {
+}
+
+function CriticalIssuesTable({ rows, onChange }) {
   return (
     <div style={{ marginBottom: 8 }}>
       <table style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -182,6 +244,201 @@ function CPIIndicator({ contractValue, progressPct, externalSpent, actualSpent }
     </div>
   );
 }
+
+// ─── BUDGET TREND CHART ───────────────────────────────────────────────────────
+function BudgetTrendChart({ budgetHistory, internalBudget, actualSpent }) {
+  const W = 820, H = 320;
+  const PAD = { top: 24, right: 24, bottom: 52, left: 88 };
+  const chartW = W - PAD.left - PAD.right;
+  const chartH = H - PAD.top - PAD.bottom;
+
+  const parseVal = v => parseFloat((v || "").replace(/[^0-9.-]/g, "")) || 0;
+  const budgetVal = parseVal(internalBudget);
+
+  // Y-axis max = internalBudget + 100,000, min 100,000 floor so chart is visible even empty
+  const yMax = Math.max(budgetVal + 100000, 100000);
+  const yMin = 0;
+  const yRange = yMax - yMin;
+
+  // Generate week dates
+  const weeks = generateWeekLabels();
+
+  // Build data points from budgetHistory keyed by getMondaySnapshotKey
+  const dataPoints = weeks.map(weekDate => {
+    const key = getMondaySnapshotKey(weekDate);
+    const snap = budgetHistory[key];
+    return {
+      date: weekDate,
+      label: formatWeekLabel(weekDate),
+      internal: snap ? snap.internalBudget : null,
+      actual: snap ? snap.actualSpent : null,
+    };
+  });
+
+  // Helper: x position for index
+  const xPos = i => PAD.left + (i / Math.max(weeks.length - 1, 1)) * chartW;
+
+  // Helper: y position for value
+  const yPos = v => PAD.top + chartH - ((v - yMin) / yRange) * chartH;
+
+  // Y axis tick values (5 ticks)
+  const yTicks = Array.from({ length: 6 }, (_, i) => yMin + (yRange / 5) * i);
+
+  // Format AED value for axis
+  const fmtAED = v => {
+    if (v >= 1000000) return (v / 1000000).toFixed(1).replace(/.0$/, "") + "M";
+    if (v >= 1000) return (v / 1000).toFixed(0) + "K";
+    return v.toString();
+  };
+
+  // Build SVG path for a line (skip null points, connect non-nulls)
+  const buildPath = (pts, key) => {
+    let d = "";
+    let started = false;
+    pts.forEach((pt, i) => {
+      if (pt[key] === null) { started = false; return; }
+      const x = xPos(i);
+      const y = yPos(pt[key]);
+      if (!started) { d += `M${x},${y}`; started = true; }
+      else { d += ` L${x},${y}`; }
+    });
+    return d;
+  };
+
+  // Check if there's any history data
+  const hasInternalData = dataPoints.some(p => p.internal !== null);
+  const hasActualData = dataPoints.some(p => p.actual !== null);
+
+  // Today marker - find which week index is current or closest past
+  const now = new Date();
+  let todayIdx = -1;
+  for (let i = weeks.length - 1; i >= 0; i--) {
+    if (weeks[i] <= now) { todayIdx = i; break; }
+  }
+
+  return (
+    <div style={{ marginTop: 28, marginBottom: 8 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "#94a3b8", textTransform: "uppercase" }}>
+          Budget Trend — Weekly Snapshot (Mondays 18:00)
+        </div>
+        <div style={{ display: "flex", gap: 20, alignItems: "center" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{ width: 24, height: 3, background: "#22c55e", borderRadius: 2 }} />
+            <span style={{ fontSize: 11, color: "#64748b", fontWeight: 600 }}>Internal Budget</span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{ width: 24, height: 3, background: "#ef4444", borderRadius: 2 }} />
+            <span style={{ fontSize: 11, color: "#64748b", fontWeight: 600 }}>Actual Spent</span>
+          </div>
+        </div>
+      </div>
+      <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 8, overflow: "hidden" }}>
+        <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ display: "block" }}>
+          {/* Grid lines */}
+          {yTicks.map((tick, i) => (
+            <g key={i}>
+              <line x1={PAD.left} y1={yPos(tick)} x2={PAD.left + chartW} y2={yPos(tick)}
+                stroke="#f1f5f9" strokeWidth="1" />
+              <text x={PAD.left - 8} y={yPos(tick) + 4} textAnchor="end"
+                style={{ fontSize: 10, fill: "#94a3b8", fontFamily: "system-ui" }}>
+                {fmtAED(tick)}
+              </text>
+            </g>
+          ))}
+
+          {/* X axis labels */}
+          {weeks.map((w, i) => {
+            // Show every label if <=12 weeks, else every 2nd
+            if (weeks.length > 12 && i % 2 !== 0) return null;
+            return (
+              <text key={i} x={xPos(i)} y={PAD.top + chartH + 20}
+                textAnchor="middle" style={{ fontSize: 9, fill: "#94a3b8", fontFamily: "system-ui" }}>
+                {formatWeekLabel(w)}
+              </text>
+            );
+          })}
+
+          {/* X axis week tick marks */}
+          {weeks.map((w, i) => (
+            <line key={i} x1={xPos(i)} y1={PAD.top + chartH} x2={xPos(i)} y2={PAD.top + chartH + 4}
+              stroke="#e2e8f0" strokeWidth="1" />
+          ))}
+
+          {/* Today vertical marker */}
+          {todayIdx >= 0 && (
+            <g>
+              <line x1={xPos(todayIdx)} y1={PAD.top} x2={xPos(todayIdx)} y2={PAD.top + chartH}
+                stroke="#0ea5e9" strokeWidth="1" strokeDasharray="4,3" opacity="0.6" />
+              <text x={xPos(todayIdx) + 4} y={PAD.top + 12}
+                style={{ fontSize: 9, fill: "#0ea5e9", fontFamily: "system-ui", fontWeight: 700 }}>
+                Today
+              </text>
+            </g>
+          )}
+
+          {/* Axes */}
+          <line x1={PAD.left} y1={PAD.top} x2={PAD.left} y2={PAD.top + chartH}
+            stroke="#e2e8f0" strokeWidth="1.5" />
+          <line x1={PAD.left} y1={PAD.top + chartH} x2={PAD.left + chartW} y2={PAD.top + chartH}
+            stroke="#e2e8f0" strokeWidth="1.5" />
+
+          {/* Y axis label */}
+          <text x={16} y={PAD.top + chartH / 2} textAnchor="middle"
+            transform={`rotate(-90, 16, ${PAD.top + chartH / 2})`}
+            style={{ fontSize: 10, fill: "#94a3b8", fontFamily: "system-ui", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase" }}>
+            AED
+          </text>
+
+          {/* X axis label */}
+          <text x={PAD.left + chartW / 2} y={H - 6} textAnchor="middle"
+            style={{ fontSize: 10, fill: "#94a3b8", fontFamily: "system-ui", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase" }}>
+            Weeks
+          </text>
+
+          {/* Internal Budget line (green) */}
+          {hasInternalData && (
+            <path d={buildPath(dataPoints, "internal")}
+              fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+          )}
+
+          {/* Actual Spent line (red) */}
+          {hasActualData && (
+            <path d={buildPath(dataPoints, "actual")}
+              fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+          )}
+
+          {/* Data point dots - Internal Budget */}
+          {dataPoints.map((pt, i) => pt.internal !== null && (
+            <g key={`ib-${i}`}>
+              <circle cx={xPos(i)} cy={yPos(pt.internal)} r={4}
+                fill="#22c55e" stroke="#ffffff" strokeWidth="1.5" />
+              <title>Internal Budget — {pt.label}: AED {pt.internal.toLocaleString()}</title>
+            </g>
+          ))}
+
+          {/* Data point dots - Actual Spent */}
+          {dataPoints.map((pt, i) => pt.actual !== null && (
+            <g key={`as-${i}`}>
+              <circle cx={xPos(i)} cy={yPos(pt.actual)} r={4}
+                fill="#ef4444" stroke="#ffffff" strokeWidth="1.5" />
+              <title>Actual Spent — {pt.label}: AED {pt.actual.toLocaleString()}</title>
+            </g>
+          ))}
+
+          {/* Empty state message */}
+          {!hasInternalData && !hasActualData && (
+            <text x={W / 2} y={H / 2} textAnchor="middle"
+              style={{ fontSize: 12, fill: "#cbd5e1", fontFamily: "system-ui" }}>
+              Data captured every Monday at 18:00 — no snapshots yet
+            </text>
+          )}
+        </svg>
+      </div>
+    </div>
+  );
+}
+
 const styles = {
   fieldLabel: { fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "#94a3b8", textTransform: "uppercase", marginBottom: 4 },
   th: { fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "#94a3b8", textTransform: "uppercase", borderBottom: "1px solid #e2e8f0", padding: "0 8px 8px 8px", textAlign: "center" },
@@ -191,6 +448,7 @@ const styles = {
   delBtn: { background: "none", border: "none", color: "#cbd5e1", fontSize: 16, cursor: "pointer", padding: "2px 4px", lineHeight: 1 },
   addBtn: { marginTop: 8, background: "none", border: "1px dashed #cbd5e1", borderRadius: 4, color: "#94a3b8", fontSize: 12, cursor: "pointer", padding: "4px 12px" },
 };
+
 export default function App() {
   const [data, setData] = useState(defaultState);
   const [loaded, setLoaded] = useState(false);
@@ -198,7 +456,15 @@ export default function App() {
   const [hideBudget, setHideBudget] = useState(false);
   const [savedAt, setSavedAt] = useState(null);
   const saveTimer = useRef(null);
-  useEffect(() => { loadData().then(d => { if (d) setData(d); setLoaded(true); }); }, []);
+  const snapshotTimer = useRef(null);
+
+  useEffect(() => {
+    loadData().then(d => {
+      if (d) setData(d);
+      setLoaded(true);
+    });
+  }, []);
+
   useEffect(() => {
     const style = document.createElement("style");
     style.id = "dt-print-styles";
@@ -214,13 +480,49 @@ export default function App() {
     if (!document.getElementById("dt-print-styles")) document.head.appendChild(style);
     return () => { const el = document.getElementById("dt-print-styles"); if (el) el.remove(); };
   }, []);
+
+  // Auto-save on data change
   useEffect(() => {
     if (!loaded) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(async () => { setSaving(true); await saveData(data); setSaving(false); setSavedAt(new Date()); }, 800);
+    saveTimer.current = setTimeout(async () => {
+      setSaving(true);
+      await saveData(data);
+      setSaving(false);
+      setSavedAt(new Date());
+    }, 800);
     return () => clearTimeout(saveTimer.current);
   }, [data, loaded]);
-  const set = useCallback((key, val) => { setData(prev => ({ ...prev, [key]: val })); }, []);
+
+  // Weekly snapshot: check every minute if it is Monday 18:00 and record values
+  useEffect(() => {
+    if (!loaded) return;
+    const takeSnapshotIfDue = () => {
+      const now = new Date();
+      // Must be Monday (day 1) and hour 18
+      if (now.getDay() !== 1 || now.getHours() !== 18) return;
+      const key = getMondaySnapshotKey(now);
+      setData(prev => {
+        const existing = prev.budgetHistory || {};
+        if (existing[key]) return prev; // already captured this week
+        const parseVal = v => parseFloat((v || "").replace(/[^0-9.-]/g, "")) || 0;
+        const snap = {
+          internalBudget: parseVal(prev.internalBudget),
+          actualSpent: parseVal(prev.actualSpent),
+          ts: now.toISOString(),
+        };
+        return { ...prev, budgetHistory: { ...existing, [key]: snap } };
+      });
+    };
+    takeSnapshotIfDue(); // check immediately on load
+    snapshotTimer.current = setInterval(takeSnapshotIfDue, 60000); // check every minute
+    return () => clearInterval(snapshotTimer.current);
+  }, [loaded]);
+
+  const set = useCallback((key, val) => {
+    setData(prev => ({ ...prev, [key]: val }));
+  }, []);
+
   const setProgramRow = useCallback((i, field, val) => {
     setData(prev => {
       if (i === "_replace") return { ...prev, programRows: val };
@@ -228,6 +530,7 @@ export default function App() {
       return { ...prev, programRows: prev.programRows.map((r, j) => j === i ? { ...r, [field]: val } : r) };
     });
   }, []);
+
   const setActionRow = useCallback((key, i, field, val) => {
     setData(prev => {
       if (i === "_replace") return { ...prev, [key]: val };
@@ -235,6 +538,7 @@ export default function App() {
       return { ...prev, [key]: prev[key].map((r, j) => j === i ? { ...r, [field]: val } : r) };
     });
   }, []);
+
   const setPaymentRow = useCallback((i, field, val) => {
     setData(prev => {
       if (i === "_replace") return { ...prev, paymentRows: val };
@@ -242,6 +546,7 @@ export default function App() {
       return { ...prev, paymentRows: prev.paymentRows.map((r, j) => j === i ? { ...r, [field]: val } : r) };
     });
   }, []);
+
   const setCriticalRow = useCallback((i, field, val) => {
     setData(prev => {
       if (i === "_replace") return { ...prev, criticalIssues: val };
@@ -249,7 +554,9 @@ export default function App() {
       return { ...prev, criticalIssues: prev.criticalIssues.map((r, j) => j === i ? { ...r, [field]: val } : r) };
     });
   }, []);
-    if (!loaded) return (<div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", background: "#f8fafc" }}><div style={{ fontSize: 13, color: "#94a3b8" }}>Loading...</div></div>);
+
+  if (!loaded) return (<div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", background: "#f8fafc" }}><div style={{ fontSize: 13, color: "#94a3b8" }}>Loading...</div></div>);
+
   return (
     <div style={{ minHeight: "100vh", background: "#f8fafc", fontFamily: "'DM Sans', system-ui, sans-serif", color: "#0f172a" }}>
       <div style={{ position: "sticky", top: 0, zIndex: 100, background: "#ffffff", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", padding: "0 32px", height: 52, gap: 20 }}>
@@ -271,7 +578,9 @@ export default function App() {
           <span style={{ fontSize: 13 }}>⬇</span> Download PDF
         </button>
       </div>
+
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "40px 32px 80px" }}>
+
         {/* 01 · PROJECT OVERVIEW */}
         <SectionHead title="Project Overview" index={0} />
         <TwoCol>
@@ -281,6 +590,7 @@ export default function App() {
         <Field label="Subconsultants" value={data.subconsultants} onChange={v => set("subconsultants", v)} type="textarea" placeholder="List all sub-consultants" />
         <Field label="Contract Value" value={data.contractValue} onChange={v => set("contractValue", v)} placeholder="AED" />
         <PageBreak />
+
         {/* 02 · PROJECT STATUS */}
         <SectionHead title="Project Status" index={1} />
         <Field label="Current Stage & Status" value={data.projectStatus} onChange={v => set("projectStatus", v)} placeholder="Enter current stage" />
@@ -290,45 +600,60 @@ export default function App() {
           <Field label="Invoice Due Date" value={data.invoiceDueDate} onChange={v => set("invoiceDueDate", v)} type="date" />
         </TwoCol>
         <PageBreak />
+
         {/* 03 · BUDGET & FINANCIALS */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
           <SectionHead title="Budget & Financials" index={2} />
           <button onClick={() => setHideBudget(h => !h)} style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", background: "none", border: "1px solid #e2e8f0", borderRadius: 4, color: "#94a3b8", cursor: "pointer", padding: "3px 10px", marginBottom: 20 }}>{hideBudget ? "Show" : "Hide"}</button>
         </div>
         {!hideBudget && <>
-        <TwoCol><div><div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}><div style={styles.fieldLabel}>Budget Status</div><BudgetStatusBadge value={data.budgetStatus} onChange={v => set("budgetStatus", v)} /></div></div><div /></TwoCol>
-        <TwoCol>
-          <Field label="Internal Budget" value={data.internalBudget} onChange={v => set("internalBudget", v)} placeholder="AED" />
-          <Field label="External Sub-Consultants Budget" value={data.externalBudget} onChange={v => set("externalBudget", v)} placeholder="AED" />
-          <div style={{ marginBottom: 14 }}><div style={styles.fieldLabel}>Available Budget To-Date</div><div style={{ fontSize: 13, color: "#0f172a", padding: "4px 0", borderBottom: "1.5px solid #e2e8f0", fontWeight: 600 }}>{(() => { const pct = parseFloat((data.progressPct || "0")) || 0; const budget = parseFloat((data.internalBudget || "").replace(/[^0-9.-]/g, "")) || 0; const val = (pct / 100) * budget; return (pct === 0 && budget === 0) ? "AED" : "AED " + val.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 }); })()}</div></div>
-          <Field label="Actual Spent To-Date" value={data.actualSpent} onChange={v => set("actualSpent", v)} placeholder="AED" />
-        </TwoCol>
-        <div style={{ marginBottom: 14 }}><div style={styles.fieldLabel}>Balance To-Date</div><BalanceIndicator available={String((parseFloat(data.progressPct || "0") / 100) * (parseFloat((data.internalBudget || "").replace(/[^0-9.-]/g, "")) || 0))} spent={data.actualSpent} /></div>
-        <TwoCol>
-          <Field label="Value of Invoice Issued" value={data.invoiceIssued} onChange={v => set("invoiceIssued", v)} placeholder="AED" />
-          <div style={{ marginBottom: 14 }}><div style={styles.fieldLabel}>External Spent To-Date</div><div style={{ fontSize: 13, color: "#0f172a", padding: "4px 0", borderBottom: "1.5px solid #e2e8f0", fontWeight: 600 }}>{(() => { const pct = parseFloat((data.progressPct || "0")) || 0; const budget = parseFloat((data.externalBudget || "").replace(/[^0-9.-]/g, "")) || 0; const val = (pct / 100) * budget; return (pct === 0 && budget === 0) ? "AED" : "AED " + val.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 }); })()}</div></div>
-        </TwoCol>
-        <div style={{ marginBottom: 14 }}><div style={styles.fieldLabel}>Cash Variance</div><CashVarianceIndicator invoiceIssued={data.invoiceIssued} actualSpent={data.actualSpent} externalSpent={"" + ((parseFloat((data.progressPct || "0")) || 0) / 100 * (parseFloat((data.externalBudget || "").replace(/[^0-9.-]/g, "")) || 0))} /></div><div style={{ marginBottom: 14 }}><div style={styles.fieldLabel}>CPI (Cost Performance Index)</div><CPIIndicator contractValue={data.contractValue} progressPct={data.progressPct} externalSpent={"" + ((parseFloat((data.progressPct || "0")) || 0) / 100 * (parseFloat((data.externalBudget || "").replace(/[^0-9.-]/g, "")) || 0))} actualSpent={data.actualSpent} /></div>
+          <TwoCol><div><div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}><div style={styles.fieldLabel}>Budget Status</div><BudgetStatusBadge value={data.budgetStatus} onChange={v => set("budgetStatus", v)} /></div></div><div /></TwoCol>
+          <TwoCol>
+            <Field label="Internal Budget" value={data.internalBudget} onChange={v => set("internalBudget", v)} placeholder="AED" />
+            <Field label="External Sub-Consultants Budget" value={data.externalBudget} onChange={v => set("externalBudget", v)} placeholder="AED" />
+            <div style={{ marginBottom: 14 }}><div style={styles.fieldLabel}>Available Budget To-Date</div><div style={{ fontSize: 13, color: "#0f172a", padding: "4px 0", borderBottom: "1.5px solid #e2e8f0", fontWeight: 600 }}>{(() => { const pct = parseFloat((data.progressPct || "0")) || 0; const budget = parseFloat((data.internalBudget || "").replace(/[^0-9.-]/g, "")) || 0; const val = (pct / 100) * budget; return (pct === 0 && budget === 0) ? "AED" : "AED " + val.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 }); })()}</div></div>
+            <Field label="Actual Spent To-Date" value={data.actualSpent} onChange={v => set("actualSpent", v)} placeholder="AED" />
+          </TwoCol>
+          <div style={{ marginBottom: 14 }}><div style={styles.fieldLabel}>Balance To-Date</div><BalanceIndicator available={String((parseFloat(data.progressPct || "0") / 100) * (parseFloat((data.internalBudget || "").replace(/[^0-9.-]/g, "")) || 0))} spent={data.actualSpent} /></div>
+          <TwoCol>
+            <Field label="Value of Invoice Issued" value={data.invoiceIssued} onChange={v => set("invoiceIssued", v)} placeholder="AED" />
+            <div style={{ marginBottom: 14 }}><div style={styles.fieldLabel}>External Spent To-Date</div><div style={{ fontSize: 13, color: "#0f172a", padding: "4px 0", borderBottom: "1.5px solid #e2e8f0", fontWeight: 600 }}>{(() => { const pct = parseFloat((data.progressPct || "0")) || 0; const budget = parseFloat((data.externalBudget || "").replace(/[^0-9.-]/g, "")) || 0; const val = (pct / 100) * budget; return (pct === 0 && budget === 0) ? "AED" : "AED " + val.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 }); })()}</div></div>
+          </TwoCol>
+          <div style={{ marginBottom: 14 }}><div style={styles.fieldLabel}>Cash Variance</div><CashVarianceIndicator invoiceIssued={data.invoiceIssued} actualSpent={data.actualSpent} externalSpent={"" + ((parseFloat((data.progressPct || "0")) || 0) / 100 * (parseFloat((data.externalBudget || "").replace(/[^0-9.-]/g, "")) || 0))} /></div>
+          <div style={{ marginBottom: 14 }}><div style={styles.fieldLabel}>CPI (Cost Performance Index)</div><CPIIndicator contractValue={data.contractValue} progressPct={data.progressPct} externalSpent={"" + ((parseFloat((data.progressPct || "0")) || 0) / 100 * (parseFloat((data.externalBudget || "").replace(/[^0-9.-]/g, "")) || 0))} actualSpent={data.actualSpent} /></div>
+
+          {/* BUDGET TREND CHART */}
+          <BudgetTrendChart
+            budgetHistory={data.budgetHistory || {}}
+            internalBudget={data.internalBudget}
+            actualSpent={data.actualSpent}
+          />
         </>}
         <PageBreak />
+
         {/* 04 · PAYMENT STATUS */}
         <SectionHead title="Payment Status" index={3} />
         <CombinedPaymentTable rows={data.paymentRows} onChange={(i, field, val) => setPaymentRow(i, field, val)} />
         <PageBreak />
+
         {/* 05 · PROGRAM */}
         <SectionHead title="Program" index={4} />
         <ProgramTable rows={data.programRows} onChange={setProgramRow} />
         <PageBreak />
+
         {/* 06 · VARIATIONS & RISKS */}
         <SectionHead title="Variations & Risks" index={5} />
-          <Field label="Potential Variations - Plan of Action" value={data.potentialVariations} onChange={v => set("potentialVariations", v)} type="textarea" placeholder="Note potential variations" />
-                      <hr style={{ border: 'none', borderTop: '1px solid #e2e8f0', margin: '0 0 24px 0' }} />
-          <div><div style={styles.fieldLabel}>Critical Issues &amp; Risks</div><CriticalIssuesTable rows={data.criticalIssues} onChange={(i, field, val) => setCriticalRow(i, field, val)} /></div>
+        <Field label="Potential Variations - Plan of Action" value={data.potentialVariations} onChange={v => set("potentialVariations", v)} type="textarea" placeholder="Note potential variations" />
+        <hr style={{ border: 'none', borderTop: '1px solid #e2e8f0', margin: '0 0 24px 0' }} />
+        <div><div style={styles.fieldLabel}>Critical Issues &amp; Risks</div><CriticalIssuesTable rows={data.criticalIssues} onChange={(i, field, val) => setCriticalRow(i, field, val)} /></div>
         <PageBreak />
+
         {/* 07 · ACTION LIST */}
         <SectionHead title="Action List" index={6} />
         <ActionTable rows={data.currentActions} onChange={(i, field, val) => setActionRow("currentActions", i, field, val)} />
+
       </div>
+
       <div style={{ borderTop: "1.5px solid #000000", padding: "16px 32px", display: "flex", justifyContent: "space-between", alignItems: "center", background: "#ffffff" }}>
         <span style={{ fontSize: 11, color: "#cbd5e1", letterSpacing: "0.06em" }}>DT ARCHITECTURE & DESIGN · CONFIDENTIAL · INTERNAL USE ONLY</span>
         <span style={{ fontSize: 11, color: "#cbd5e1" }}>{new Date().getFullYear()}</span>
@@ -336,4 +661,9 @@ export default function App() {
     </div>
   );
 }
-const navInput = { background: "transparent", border: "none", borderBottom: "1.5px solid transparent", outline: "none", fontSize: 13, color: "#0f172a", padding: "2px 0", transition: "border-color 0.15s", fontFamily: "inherit" };
+
+const navInput = {
+  background: "transparent", border: "none", borderBottom: "1.5px solid transparent",
+  outline: "none", fontSize: 13, color: "#0f172a", padding: "2px 0",
+  transition: "border-color 0.15s", fontFamily: "inherit"
+};
