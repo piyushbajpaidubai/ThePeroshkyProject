@@ -110,7 +110,7 @@ function ActionTable({ rows, onChange }) {
               <td style={styles.tdNum}>{String(i + 1).padStart(2, "0")}</td>
               <td style={styles.td}><input value={row.action} onChange={e => onChange(i, "action", e.target.value)} placeholder="Enter action item..." style={styles.inlineInput} /></td>
               <td style={styles.td}><input value={row.owner} onChange={e => onChange(i, "owner", e.target.value)} placeholder="Name" style={{ ...styles.inlineInput, textAlign: "center" }} /></td>
-              <td style={styles.td}><TrafficLight value={row.status || ""} onChange={v => onChange(i, "status", v)} /></td>
+              <td style={styles.td}><RiskStatusBar value={row.status || ""} onChange={v => onChange(i, "status", v)} /></td>
               <td style={styles.td}><button onClick={() => { const next = rows.filter((_, j) => j !== i); onChange("_replace", null, next); }} style={styles.delBtn}>×</button></td>
             </tr>
           ))}
