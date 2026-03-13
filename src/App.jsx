@@ -103,6 +103,70 @@ function Field({ label, value, onChange, type = "text", placeholder = "", mono =
   return (<div style={{ marginBottom: 14 }}>{label && <div style={styles.fieldLabel}>{label}</div>}<input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} style={{ ...base, borderBottom: `1.5px solid ${focused ? "#0ea5e9" : "#e2e8f0"}` }} /></div>);
 }
 
+
+
+// Formats a raw numeric string with commas for display
+function formatCommas(raw) {
+  const stripped = (raw || "").replace(/[^0-9.]/g, "");
+  if (!stripped) return "";
+  const [intPart, decPart] = stripped.split(".");
+  const formatted = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return decPart !== undefined ? formatted + "." + decPart : formatted;
+}
+
+// Currency input: stores raw digits in state, displays comma-formatted when blurred
+function CurrencyField({ label, value, onChange, placeholder = "AED" }) {
+  const [focused, setFocused] = useState(false);
+  const [localVal, setLocalVal] = useState(value || "");
+
+  // Keep localVal in sync when not focused (e.g. external state changes)
+  useEffect(() => {
+    if (!focused) setLocalVal(value || "");
+  }, [value, focused]);
+
+  const base = {
+    fontFamily: "inherit",
+    fontSize: 13,
+    color: "#0f172a",
+    background: "transparent",
+    border: "none",
+    borderBottom: `1.5px solid ${focused ? "#0ea5e9" : "#e2e8f0"}`,
+    outline: "none",
+    width: "100%",
+    padding: "4px 0",
+    lineHeight: 1.6,
+  };
+
+  const displayVal = focused ? localVal : formatCommas(localVal);
+
+  return (
+    <div style={{ marginBottom: 14 }}>
+      {label && <div style={styles.fieldLabel}>{label}</div>}
+      <input
+        type="text"
+        inputMode="numeric"
+        value={displayVal}
+        placeholder={placeholder}
+        onFocus={() => {
+          setFocused(true);
+          setLocalVal(value || "");
+        }}
+        onChange={e => {
+          // Only allow digits and a single dot
+          const raw = e.target.value.replace(/[^0-9.]/g, "");
+          setLocalVal(raw);
+          onChange(raw);
+        }}
+        onBlur={() => {
+          setFocused(false);
+          setLocalVal(value || "");
+        }}
+        style={base}
+      />
+    </div>
+  );
+}
+
 function StatusBadge({ value, onChange }) {
   const options = ["Signed", "Pending", "LOA Issued", "Awaited"];
   const colors = { Signed: { bg: "#dcfce7", fg: "#166534" }, Pending: { bg: "#fef9c3", fg: "#854d0e" }, "LOA Issued": { bg: "#dbeafe", fg: "#1e40af" }, Awaited: { bg: "#fee2e2", fg: "#991b1b" }, "": { bg: "#f1f5f9", fg: "#64748b" } };
@@ -583,7 +647,7 @@ export default function App() {
           <div><div style={styles.fieldLabel}>Contract Status</div><div style={{ marginBottom: 14, paddingTop: 4 }}><StatusBadge value={data.contractStatus} onChange={v => set("contractStatus", v)} /></div></div>
         </TwoCol>
         <Field label="Subconsultants" value={data.subconsultants} onChange={v => set("subconsultants", v)} type="textarea" placeholder="List all sub-consultants" />
-        <Field label="Contract Value" value={data.contractValue} onChange={v => set("contractValue", v)} placeholder="AED" />
+        <CurrencyField label="Contract Value" value={data.contractValue} onChange={v => set("contractValue", v)} />
         <PageBreak />
 
         {/* 02 · PROJECT STATUS */}
@@ -604,14 +668,14 @@ export default function App() {
         {!hideBudget && <>
           <TwoCol><div><div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}><div style={styles.fieldLabel}>Budget Status</div><BudgetStatusBadge value={data.budgetStatus} onChange={v => set("budgetStatus", v)} /></div></div><div /></TwoCol>
           <TwoCol>
-            <Field label="Internal Budget" value={data.internalBudget} onChange={v => set("internalBudget", v)} placeholder="AED" />
-            <Field label="External Sub-Consultants Budget" value={data.externalBudget} onChange={v => set("externalBudget", v)} placeholder="AED" />
+            <CurrencyField label="Internal Budget" value={data.internalBudget} onChange={v => set("internalBudget", v)} />
+            <CurrencyField label="External Sub-Consultants Budget" value={data.externalBudget} onChange={v => set("externalBudget", v)} />
             <div style={{ marginBottom: 14 }}><div style={styles.fieldLabel}>Available Budget To-Date</div><div style={{ fontSize: 13, color: "#0f172a", padding: "4px 0", borderBottom: "1.5px solid #e2e8f0", fontWeight: 600 }}>{(() => { const pct = parseFloat((data.progressPct || "0")) || 0; const budget = parseFloat((data.internalBudget || "").replace(/[^0-9.-]/g, "")) || 0; const val = (pct / 100) * budget; return (pct === 0 && budget === 0) ? "AED" : "AED " + val.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 }); })()}</div></div>
-            <Field label="Actual Spent To-Date" value={data.actualSpent} onChange={v => set("actualSpent", v)} placeholder="AED" />
+            <CurrencyField label="Actual Spent To-Date" value={data.actualSpent} onChange={v => set("actualSpent", v)} />
           </TwoCol>
           <div style={{ marginBottom: 14 }}><div style={styles.fieldLabel}>Balance To-Date</div><BalanceIndicator available={String((parseFloat(data.progressPct || "0") / 100) * (parseFloat((data.internalBudget || "").replace(/[^0-9.-]/g, "")) || 0))} spent={data.actualSpent} /></div>
           <TwoCol>
-            <Field label="Value of Invoice Issued" value={data.invoiceIssued} onChange={v => set("invoiceIssued", v)} placeholder="AED" />
+            <CurrencyField label="Value of Invoice Issued" value={data.invoiceIssued} onChange={v => set("invoiceIssued", v)} />
             <div style={{ marginBottom: 14 }}><div style={styles.fieldLabel}>External Spent To-Date</div><div style={{ fontSize: 13, color: "#0f172a", padding: "4px 0", borderBottom: "1.5px solid #e2e8f0", fontWeight: 600 }}>{(() => { const pct = parseFloat((data.progressPct || "0")) || 0; const budget = parseFloat((data.externalBudget || "").replace(/[^0-9.-]/g, "")) || 0; const val = (pct / 100) * budget; return (pct === 0 && budget === 0) ? "AED" : "AED " + val.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 }); })()}</div></div>
           </TwoCol>
           <div style={{ marginBottom: 14 }}><div style={styles.fieldLabel}>Cash Variance</div><CashVarianceIndicator invoiceIssued={data.invoiceIssued} actualSpent={data.actualSpent} externalSpent={"" + ((parseFloat((data.progressPct || "0")) || 0) / 100 * (parseFloat((data.externalBudget || "").replace(/[^0-9.-]/g, "")) || 0))} /></div>
