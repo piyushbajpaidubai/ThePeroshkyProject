@@ -318,7 +318,7 @@ function CriticalIssuesTable({ rows, onChange }) {
 }
 
 // ─── BUDGET TREND CHART ───────────────────────────────────────────────────────
-function BudgetTrendChart({ budgetHistory, internalBudget, actualSpent, onManualUpdate }) {
+function BudgetTrendChart({ budgetHistory, internalBudget, availableBudget, actualSpent, onManualUpdate }) {
   const W = 820, H = 320;
   const PAD = { top: 24, right: 24, bottom: 52, left: 88 };
   const chartW = W - PAD.left - PAD.right;
@@ -327,9 +327,9 @@ function BudgetTrendChart({ budgetHistory, internalBudget, actualSpent, onManual
   const [justUpdated, setJustUpdated] = useState(false);
 
   const parseVal = v => parseFloat((v || "").replace(/[^0-9.-]/g, "")) || 0;
-  const budgetVal = parseVal(internalBudget);
-
-  const yMax = Math.max(budgetVal + 100000, 100000);
+  const availableBudgetVal = parseVal(availableBudget);
+  const dataMax = Math.max(availableBudgetVal, parseVal(actualSpent));
+  const yMax = Math.max(dataMax * 1.3, 10000);
   const yMin = 0;
   const yRange = yMax - yMin;
 
@@ -341,7 +341,7 @@ function BudgetTrendChart({ budgetHistory, internalBudget, actualSpent, onManual
     return {
       date: weekDate,
       label: formatWeekLabel(weekDate),
-      internal: snap ? snap.internalBudget : null,
+      internal: snap ? snap.availableBudget : null,
       actual: snap ? snap.actualSpent : null,
     };
   });
@@ -398,7 +398,7 @@ function BudgetTrendChart({ budgetHistory, internalBudget, actualSpent, onManual
         <div style={{ display: "flex", gap: 20, alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <div style={{ width: 24, height: 3, background: "#22c55e", borderRadius: 2 }} />
-            <span style={{ fontSize: 11, color: "#64748b", fontWeight: 600 }}>Internal Budget</span>
+            <span style={{ fontSize: 11, color: "#64748b", fontWeight: 600 }}>Available Budget to Date</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <div style={{ width: 24, height: 3, background: "#ef4444", borderRadius: 2 }} />
@@ -436,7 +436,7 @@ function BudgetTrendChart({ budgetHistory, internalBudget, actualSpent, onManual
           {dataPoints.map((pt, i) => pt.internal !== null && (
             <g key={`ib-${i}`}>
               <circle cx={xPos(i)} cy={yPos(pt.internal)} r={4} fill="#22c55e" stroke="#ffffff" strokeWidth="1.5" />
-              <title>Internal Budget — {pt.label}: AED {pt.internal.toLocaleString()}</title>
+              <title>Available Budget to Date — {pt.label}: AED {pt.internal.toLocaleString()}</title>
             </g>
           ))}
           {dataPoints.map((pt, i) => pt.actual !== null && (
@@ -462,7 +462,7 @@ function BudgetTrendChart({ budgetHistory, internalBudget, actualSpent, onManual
         )}
         {currentSnap && !justUpdated && (
           <span style={{ fontSize: 11, color: "#94a3b8" }}>
-            Week of {currentWeekLabel}: Budget {parseVal(internalBudget).toLocaleString()} · Spent {parseVal(actualSpent).toLocaleString()}
+            Week of {currentWeekLabel}: Available {parseVal(availableBudget).toLocaleString()} · Spent {parseVal(actualSpent).toLocaleString()}
           </span>
         )}
         <button
@@ -555,7 +555,9 @@ export default function App() {
         const existing = prev.budgetHistory || {};
         if (existing[key]) return prev;
         const parseVal = v => parseFloat((v || "").replace(/[^0-9.-]/g, "")) || 0;
-        const snap = { internalBudget: parseVal(prev.internalBudget), actualSpent: parseVal(prev.actualSpent), ts: now.toISOString() };
+        const snap = { internalBudget: parseVal(prev.internalBudget),
+        availableBudget: (parseFloat(prev.progressPct || "0") / 100) * (parseFloat((prev.internalBudget || "").replace(/[^0-9.-]/g, "")) || 0),
+        actualSpent: parseVal(prev.actualSpent), ts: now.toISOString() };
         return { ...prev, budgetHistory: { ...existing, [key]: snap } };
       });
     };
@@ -572,6 +574,7 @@ export default function App() {
       const parseVal = v => parseFloat((v || "").replace(/[^0-9.-]/g, "")) || 0;
       const snap = {
         internalBudget: parseVal(prev.internalBudget),
+        availableBudget: (parseFloat(prev.progressPct || "0") / 100) * (parseFloat((prev.internalBudget || "").replace(/[^0-9.-]/g, "")) || 0),
         actualSpent: parseVal(prev.actualSpent),
         ts: now.toISOString(),
         manuallyUpdated: true,
@@ -685,6 +688,10 @@ export default function App() {
           <BudgetTrendChart
             budgetHistory={data.budgetHistory || {}}
             internalBudget={data.internalBudget}
+            availableBudget={String(
+              (parseFloat(data.progressPct || "0") / 100) *
+              (parseFloat((data.internalBudget || "").replace(/[^0-9.-]/g, "")) || 0)
+            )}
             actualSpent={data.actualSpent}
             onManualUpdate={handleManualUpdate}
           />
