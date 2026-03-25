@@ -201,6 +201,28 @@ function RiskStatusBar({ value, onChange }) {
   );
 }
 
+function ActionStatusBar({ value, onChange }) {
+  const opts = [
+    { value: "pending", label: "Pending", bg: "#f97316", fg: "#ffffff" },
+    { value: "delayed", label: "Delayed", bg: "#ef4444", fg: "#ffffff" },
+    { value: "on_track", label: "On-Track", bg: "#22c55e", fg: "#ffffff" },
+    { value: "hold", label: "Hold", bg: "#3b82f6", fg: "#ffffff" },
+    { value: "closed", label: "Closed", bg: "#9ca3af", fg: "#ffffff" },
+  ];
+  const sel = opts.find(o => o.value === value);
+  const bg = sel ? sel.bg : "#e2e8f0";
+  const fg = sel ? sel.fg : "#64748b";
+  return (
+    <div style={{ position: "relative", display: "inline-block" }}>
+      <select value={value || ""} onChange={e => onChange(e.target.value)} style={{ appearance: "none", background: bg, color: fg, border: "none", borderRadius: 4, padding: "3px 24px 3px 10px", fontSize: 12, fontWeight: 600, cursor: "pointer", outline: "none", minWidth: 90 }}>
+        <option value="">Select</option>
+        {opts.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+      </select>
+      <span style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", fontSize: 10, color: fg }}>▾</span>
+    </div>
+  );
+}
+
 function ProgressBar({ value, onChange }) {
   const pct = Math.min(100, Math.max(0, parseInt(value) || 0));
   const color = pct < 30 ? "#f87171" : pct < 70 ? "#fbbf24" : "#34d399";
@@ -237,7 +259,7 @@ function ActionTable({ rows, onChange }) {
               <td style={styles.tdNum}>{String(i + 1).padStart(2, "0")}</td>
               <td style={styles.td}><input value={row.action} onChange={e => onChange(i, "action", e.target.value)} placeholder="Enter action item..." style={styles.inlineInput} /></td>
               <td style={styles.td}><input value={row.owner} onChange={e => onChange(i, "owner", e.target.value)} placeholder="Name" style={{ ...styles.inlineInput, textAlign: "center" }} /></td>
-              <td style={styles.td}><RiskStatusBar value={row.status || ""} onChange={v => onChange(i, "status", v)} /></td>
+              <td style={styles.td}><ActionStatusBar value={row.status || ""} onChange={v => onChange(i, "status", v)} /></td>
               <td style={styles.td}><button onClick={() => { const next = rows.filter((_, j) => j !== i); onChange("_replace", null, next); }} style={styles.delBtn}>×</button></td>
             </tr>
           ))}
