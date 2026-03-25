@@ -437,7 +437,7 @@ function BudgetTrendChart({ budgetHistory, internalBudget, availableBudget, actu
             </g>
           ))}
           {weeks.map((w, i) => {
-            if (weeks.length > 12 && i % 2 !== 0) return null;
+            if (i % Math.max(1, Math.floor(weeks.length / 8)) !== 0) return null;
             return (<text key={i} x={xPos(i)} y={PAD.top + chartH + 20} textAnchor="middle" style={{ fontSize: 9, fill: "#94a3b8", fontFamily: "system-ui" }}>{formatWeekLabel(w)}</text>);
           })}
           {weeks.map((w, i) => (
