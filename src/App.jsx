@@ -83,9 +83,9 @@ const defaultState = {
   budgetHistory: {},
   paymentRows: [{ milestone: "", clientStatus: "", subsStatus: "" }, { milestone: "", clientStatus: "", subsStatus: "" }],
   programRows: [
-    { stage: "", baseline: "", actual: "" },
-    { stage: "", baseline: "", actual: "" },
-    { stage: "", baseline: "", actual: "" },
+    { stage: "", baseline: "", baselineStart: "", baselineEnd: "", actual: "", actualStart: "", actualEnd: "" },
+    { stage: "", baseline: "", baselineStart: "", baselineEnd: "", actual: "", actualStart: "", actualEnd: "" },
+    { stage: "", baseline: "", baselineStart: "", baselineEnd: "", actual: "", actualStart: "", actualEnd: "" },
   ],
   potentialVariations: "",
   criticalIssues: [{ issue: "", status: "" }, { issue: "", status: "" }, { issue: "", status: "" }],
@@ -257,7 +257,7 @@ function ActionTable({ rows, onChange }) {
           {rows.map((row, i) => (
             <tr key={i}>
               <td style={styles.tdNum}>{String(i + 1).padStart(2, "0")}</td>
-              <td style={styles.td}><input value={row.action} onChange={e => onChange(i, "action", e.target.value)} placeholder="Enter action item..." style={styles.inlineInput} /></td>
+              <td style={styles.td}><textarea value={row.action} onChange={e => onChange(i, "action", e.target.value)} placeholder="Enter action item..." style={{ ...styles.inlineInput, resize: "vertical", minHeight: 32, height: 32, overflow: "hidden", lineHeight: "1.4", padding: "4px 6px", boxSizing: "border-box", display: "block", width: "100%" }} rows={1} /></td>
               <td style={styles.td}><input value={row.owner} onChange={e => onChange(i, "owner", e.target.value)} placeholder="Name" style={{ ...styles.inlineInput, textAlign: "center" }} /></td>
               <td style={styles.td}><ActionStatusBar value={row.status || ""} onChange={v => onChange(i, "status", v)} /></td>
               <td style={styles.td}><button onClick={() => { const next = rows.filter((_, j) => j !== i); onChange("_replace", null, next); }} style={styles.delBtn}>×</button></td>
@@ -271,7 +271,7 @@ function ActionTable({ rows, onChange }) {
 }
 
 function ProgramTable({ rows, onChange }) {
-  return (<div style={{ marginBottom: 8 }}><table style={{ width: "100%", borderCollapse: "collapse" }}><thead><tr><th style={{ ...styles.th, textAlign: "left", width: "34%" }}>Stage</th><th style={{ ...styles.th, textAlign: "left" }}>Baseline Duration</th><th style={{ ...styles.th, textAlign: "left" }}>Actual Duration</th><th style={{ ...styles.th, width: 32 }}></th></tr></thead><tbody>{rows.map((row, i) => (<tr key={i}><td style={styles.td}><input value={row.stage} onChange={e => onChange(i, "stage", e.target.value)} placeholder="Stage name" style={styles.inlineInput} /></td><td style={styles.td}><input value={row.baseline} onChange={e => onChange(i, "baseline", e.target.value)} placeholder="e.g. 8 weeks" style={styles.inlineInput} /></td><td style={styles.td}><input value={row.actual} onChange={e => onChange(i, "actual", e.target.value)} placeholder="e.g. 10 weeks" style={styles.inlineInput} /></td><td style={styles.td}><button onClick={() => { const next = rows.filter((_, j) => j !== i); onChange("_replace", null, next); }} style={styles.delBtn}>×</button></td></tr>))}</tbody></table><button onClick={() => onChange("_add", null, null)} style={styles.addBtn}>+ Add stage</button></div>);
+  return (<div style={{ marginBottom: 8 }}><table style={{ width: "100%", borderCollapse: "collapse" }}><thead><tr><th style={{ ...styles.th, textAlign: "left", width: "34%" }}>Stage</th><th style={{ ...styles.th, textAlign: "left" }}>Baseline Duration</th><th style={{ ...styles.th, textAlign: "left" }}>Baseline Start</th><th style={{ ...styles.th, textAlign: "left" }}>Baseline End</th><th style={{ ...styles.th, textAlign: "left" }}>Actual Duration</th><th style={{ ...styles.th, textAlign: "left" }}>Actual Start</th><th style={{ ...styles.th, textAlign: "left" }}>Actual End</th><th style={{ ...styles.th, width: 32 }}></th></tr></thead><tbody>{rows.map((row, i) => (<tr key={i}><td style={styles.td}><input value={row.stage} onChange={e => onChange(i, "stage", e.target.value)} placeholder="Stage name" style={styles.inlineInput} /></td><td style={styles.td}><input value={row.baseline} onChange={e => onChange(i, "baseline", e.target.value)} placeholder="e.g. 8 weeks" style={styles.inlineInput} /></td><td style={styles.td}><input value={row.baselineStart || ""} onChange={e => onChange(i, "baselineStart", e.target.value)} placeholder="dd/mm" maxLength={5} style={{ ...styles.inlineInput, textAlign: "center", width: 60 }} /></td><td style={styles.td}><input value={row.baselineEnd || ""} onChange={e => onChange(i, "baselineEnd", e.target.value)} placeholder="dd/mm" maxLength={5} style={{ ...styles.inlineInput, textAlign: "center", width: 60 }} /></td><td style={styles.td}><input value={row.actual} onChange={e => onChange(i, "actual", e.target.value)} placeholder="e.g. 10 weeks" style={styles.inlineInput} /></td><td style={styles.td}><input value={row.actualStart || ""} onChange={e => onChange(i, "actualStart", e.target.value)} placeholder="dd/mm" maxLength={5} style={{ ...styles.inlineInput, textAlign: "center", width: 60 }} /></td><td style={styles.td}><input value={row.actualEnd || ""} onChange={e => onChange(i, "actualEnd", e.target.value)} placeholder="dd/mm" maxLength={5} style={{ ...styles.inlineInput, textAlign: "center", width: 60 }} /></td><td style={styles.td}><button onClick={() => { const next = rows.filter((_, j) => j !== i); onChange("_replace", null, next); }} style={styles.delBtn}>×</button></td></tr>))}</tbody></table><button onClick={() => onChange("_add", null, null)} style={styles.addBtn}>+ Add stage</button></div>);
 }
 
 function CombinedPaymentTable({ rows, onChange }) {
@@ -610,7 +610,7 @@ export default function App() {
   const setProgramRow = useCallback((i, field, val) => {
     setData(prev => {
       if (i === "_replace") return { ...prev, programRows: val };
-      if (i === "_add") return { ...prev, programRows: [...prev.programRows, { stage: "", baseline: "", actual: "" }] };
+      if (i === "_add") return { ...prev, programRows: [...prev.programRows, { stage: "", baseline: "", baselineStart: "", baselineEnd: "", actual: "", actualStart: "", actualEnd: "" }] };
       return { ...prev, programRows: prev.programRows.map((r, j) => j === i ? { ...r, [field]: val } : r) };
     });
   }, []);
