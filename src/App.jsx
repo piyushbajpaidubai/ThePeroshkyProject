@@ -257,7 +257,7 @@ function ActionTable({ rows, onChange }) {
           {rows.map((row, i) => (
             <tr key={i}>
               <td style={styles.tdNum}>{String(i + 1).padStart(2, "0")}</td>
-              <td style={styles.td}><textarea value={row.action} onChange={e => onChange(i, "action", e.target.value)} placeholder="Enter action item..." style={{ ...styles.inlineInput, resize: "vertical", minHeight: 32, height: 32, overflow: "hidden", lineHeight: "1.4", padding: "4px 6px", boxSizing: "border-box", display: "block", width: "100%" }} rows={1} /></td>
+              <td style={styles.td}><textarea value={row.action} onChange={e => { onChange(i, "action", e.target.value); e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }} onInput={e => { e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }} placeholder="Enter action item..." style={{ ...styles.inlineInput, resize: "none", minHeight: 32, height: "auto", overflow: "hidden", lineHeight: "1.4", padding: "4px 6px", boxSizing: "border-box", display: "block", width: "100%" }} rows={1} /></td>
               <td style={styles.td}><input value={row.owner} onChange={e => onChange(i, "owner", e.target.value)} placeholder="Name" style={{ ...styles.inlineInput, textAlign: "center" }} /></td>
               <td style={styles.td}><ActionStatusBar value={row.status || ""} onChange={v => onChange(i, "status", v)} /></td>
               <td style={styles.td}><button onClick={() => { const next = rows.filter((_, j) => j !== i); onChange("_replace", null, next); }} style={styles.delBtn}>×</button></td>
@@ -446,7 +446,7 @@ function BudgetTrendChart({ budgetHistory, internalBudget, availableBudget, actu
           {todayIdx >= 0 && (
             <g>
               <line x1={xPos(todayIdx)} y1={PAD.top} x2={xPos(todayIdx)} y2={PAD.top + chartH} stroke="#0ea5e9" strokeWidth="1" strokeDasharray="4,3" opacity="0.6" />
-              <text x={xPos(todayIdx) + 4} y={PAD.top + 12} style={{ fontSize: 9, fill: "#0ea5e9", fontFamily: "system-ui", fontWeight: 700 }}>Today</text>
+              <text x={xPos(todayIdx) + 4} y={PAD.top + 12} style={{ fontSize: 9, fill: "#0ea5e9", fontFamily: "system-ui", fontWeight: 700 }}>Current Week</text>
             </g>
           )}
           <line x1={PAD.left} y1={PAD.top} x2={PAD.left} y2={PAD.top + chartH} stroke="#e2e8f0" strokeWidth="1.5" />
