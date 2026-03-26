@@ -23,7 +23,7 @@ async function saveData(data) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
-  } catch {}
+  } catch {}h
 }
 
 // Returns the Monday-18:00 key for any given date (or current week if no date)
@@ -670,7 +670,7 @@ export default function App() {
         </button>
       </div>
 
-        <img src="https://designtomorrow.com/wp-content/uploads/2022/11/logo_black.png" alt="DesignTomorrow" style={{ position: "relative", minHeight: "100vh", background: maxWidth: 900, margin: position: "fixed", left: 20, top: "50%", transform: "translateY(-50%)", width: 80, opacity: 0.8, pointerEvents: "none", zIndex: 0"0 auto""#f8fafc" }} />
+        <img src="https://designtomorrow.com/wp-content/uploads/2022/11/logo_black.png" alt="DesignTomorrow" style={{ position: "fixed", left: 20, top: "50%", transform: "translateY(-50%)", width: 80, opacity: 0.8, pointerEvents: "none", zIndex: 0 }} />
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "40px 32px 80px" }}>
 
         {/* 01 Â· PROJECT OVERVIEW */}
