@@ -96,161 +96,7 @@ const defaultState = {
   ],
 };
 
-<<<<<<< HEAD
 function Field({ label, value, onChange, type = "text", placeholder = "", mono = false, numeric = false }) {
-=======
-
-// ── Design Tomorrow staff directory ──────────────────────────────────────
-const DT_STAFF = [
-  { name: "Dara John Towhidi", role: "Founder and Design Director",   photo: "https://designtomorrow.com/wp-content/uploads/2023/08/Dara.jpg" },
-  { name: "Maya",              role: "Managing Director",              photo: "https://designtomorrow.com/wp-content/uploads/2024/08/Maya.jpg" },
-  { name: "Munehiko",          role: "Architecture Director",          photo: "https://designtomorrow.com/wp-content/uploads/2025/10/Mune.png" },
-  { name: "Luca",              role: "Design Consultant",              photo: "https://designtomorrow.com/wp-content/uploads/2023/08/Luca.jpg" },
-  { name: "Nacho",             role: "Head of Interiors",              photo: "https://designtomorrow.com/wp-content/uploads/2026/03/Gemini_Generated_Image_zazx1tzazx1tzazx.png" },
-  { name: "Fay",               role: "Associate - Urban Design Lead",  photo: "https://designtomorrow.com/wp-content/uploads/2026/02/Fay-BW-revised.png" },
-  { name: "George",            role: "Associate",                      photo: "https://designtomorrow.com/wp-content/uploads/2023/10/George.jpg" },
-  { name: "Ibrahim",           role: "Associate",                      photo: "https://designtomorrow.com/wp-content/uploads/2026/03/Ibrahim.png" },
-  { name: "Bruno",             role: "Digital Design Lead",            photo: "https://designtomorrow.com/wp-content/uploads/2026/02/Bruno-gemini.png" },
-  { name: "Alexander",         role: "Senior Architect",               photo: "https://designtomorrow.com/wp-content/uploads/2026/03/Alex-2-1.png" },
-  { name: "Arian",             role: "Project Architect",              photo: "https://designtomorrow.com/wp-content/uploads/2023/08/Arian.jpg" },
-  { name: "Dina",              role: "Project Architect",              photo: "https://designtomorrow.com/wp-content/uploads/2025/06/Dina_Website-scaled.jpg" },
-  { name: "Karim",             role: "Project Architect",              photo: "https://designtomorrow.com/wp-content/uploads/2025/06/Karim_ForWebsite-scaled.jpg" },
-  { name: "Carlo Alberto",     role: "Project Architect",              photo: "https://designtomorrow.com/wp-content/uploads/2024/09/Carlo.jpg" },
-  { name: "Alvaro",            role: "Project Architect",              photo: "https://designtomorrow.com/wp-content/uploads/2025/12/Alvaro-NEW.png" },
-  { name: "Salvador",          role: "Project Architect",              photo: "https://designtomorrow.com/wp-content/uploads/2025/10/salva.png" },
-  { name: "Saanchi",           role: "Architect",                      photo: "https://designtomorrow.com/wp-content/uploads/2024/08/Saanchi.jpg" },
-  { name: "Yara",              role: "Architect",                      photo: "https://designtomorrow.com/wp-content/uploads/2024/08/Yara.jpg" },
-  { name: "Tejas",             role: "Architect",                      photo: "https://designtomorrow.com/wp-content/uploads/2025/12/Tejas_BNW.png" },
-  { name: "Sapta",             role: "Architect",                      photo: "https://designtomorrow.com/wp-content/uploads/2026/03/Sapta.png" },
-  { name: "Hamza",             role: "Junior Architect",               photo: "https://designtomorrow.com/wp-content/uploads/2026/03/IMG_5206-1.png" },
-  { name: "Nadim",             role: "Junior Architect",               photo: "https://designtomorrow.com/wp-content/uploads/2026/02/Nadim-New.png" },
-  { name: "Joan",              role: "Junior Architect",               photo: "https://designtomorrow.com/wp-content/uploads/2025/10/Joan-2.png" },
-  { name: "Yomna",             role: "Junior Architect",               photo: "https://designtomorrow.com/wp-content/uploads/2026/02/Yomna-resized-1.png" },
-  { name: "Luisa",             role: "Junior Architect",               photo: "https://designtomorrow.com/wp-content/uploads/2025/10/Luisa.png" },
-  { name: "Shell",             role: "Bid Coordinator",                photo: "https://designtomorrow.com/wp-content/uploads/2026/03/Shell-1.png" },
-  { name: "Melissa",           role: "Office Manager",                 photo: "https://designtomorrow.com/wp-content/uploads/2025/10/Meli.png" },
-];
-
-// Single-select staff picker (Key Personnel)
-function StaffPicker({ label, value, onChange }) {
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
-  const ref = useRef(null);
-  const selected = DT_STAFF.find(s => s.name === value);
-  const filtered = query
-    ? DT_STAFF.filter(s => s.name.toLowerCase().includes(query.toLowerCase()) || s.role.toLowerCase().includes(query.toLowerCase()))
-    : DT_STAFF;
-  useEffect(() => {
-    const handler = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-  return (
-    <div ref={ref} style={{ marginBottom: 14, position: "relative" }}>
-      <div style={styles.fieldLabel}>{label}</div>
-      <div onClick={() => setOpen(o => !o)} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", borderBottom: "1.5px solid #0ea5e9", paddingBottom: 4, minHeight: 32 }}>
-        {selected ? (
-          <>
-            <img src={selected.photo} alt={selected.name} style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
-            <span style={{ fontSize: 14, color: "#1e293b" }}>{selected.name}</span>
-            <span style={{ fontSize: 11, color: "#94a3b8", marginLeft: 2 }}>{selected.role}</span>
-            <button onClick={e => { e.stopPropagation(); onChange(""); setQuery(""); }} style={{ marginLeft: "auto", background: "none", border: "none", color: "#94a3b8", cursor: "pointer", fontSize: 16, lineHeight: 1 }}>×</button>
-          </>
-        ) : (
-          <span style={{ fontSize: 14, color: "#94a3b8" }}>Select project lead…</span>
-        )}
-      </div>
-      {open && (
-        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 999, background: "#fff", border: "1px solid #e2e8f0", borderRadius: 8, boxShadow: "0 8px 24px rgba(0,0,0,0.12)", maxHeight: 320, overflow: "hidden", display: "flex", flexDirection: "column" }}>
-          <div style={{ padding: "8px 10px", borderBottom: "1px solid #f1f5f9" }}>
-            <input autoFocus value={query} onChange={e => setQuery(e.target.value)} placeholder="Search name or role…" style={{ width: "100%", border: "none", outline: "none", fontSize: 13, color: "#1e293b", background: "transparent" }} />
-          </div>
-          <div style={{ overflowY: "auto", maxHeight: 260 }}>
-            {filtered.map(s => (
-              <div key={s.name} onClick={() => { onChange(s.name); setOpen(false); setQuery(""); }} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", cursor: "pointer", background: value === s.name ? "#f0f9ff" : "#fff", borderBottom: "1px solid #f8fafc" }}
-                onMouseEnter={e => e.currentTarget.style.background = "#f8fafc"}
-                onMouseLeave={e => e.currentTarget.style.background = value === s.name ? "#f0f9ff" : "#fff"}>
-                <img src={s.photo} alt={s.name} style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "#1e293b" }}>{s.name}</div>
-                  <div style={{ fontSize: 11, color: "#64748b" }}>{s.role}</div>
-                </div>
-                {value === s.name && <span style={{ marginLeft: "auto", color: "#0ea5e9", fontSize: 14 }}>✓</span>}
-              </div>
-            ))}
-            {filtered.length === 0 && <div style={{ padding: "12px", fontSize: 13, color: "#94a3b8" }}>No results</div>}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// Multi-select staff picker (Team This Week) - shows chips
-function StaffPickerMulti({ label, value, onChange }) {
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
-  const ref = useRef(null);
-  const selected = value ? value.split(",").map(n => n.trim()).filter(Boolean) : [];
-  const filtered = query
-    ? DT_STAFF.filter(s => s.name.toLowerCase().includes(query.toLowerCase()) || s.role.toLowerCase().includes(query.toLowerCase()))
-    : DT_STAFF;
-  const toggle = (name) => {
-    const idx = selected.indexOf(name);
-    const next = idx >= 0 ? selected.filter(n => n !== name) : [...selected, name];
-    onChange(next.join(", "));
-  };
-  useEffect(() => {
-    const handler = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-  return (
-    <div ref={ref} style={{ marginBottom: 14, position: "relative" }}>
-      <div style={styles.fieldLabel}>{label}</div>
-      <div onClick={() => setOpen(o => !o)} style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 6, cursor: "pointer", borderBottom: "1.5px solid #0ea5e9", paddingBottom: 6, minHeight: 36 }}>
-        {selected.length > 0 ? selected.map(name => {
-          const staff = DT_STAFF.find(s => s.name === name);
-          return (
-            <div key={name} style={{ display: "flex", alignItems: "center", gap: 5, background: "#f0f9ff", borderRadius: 20, padding: "2px 8px 2px 4px", border: "1px solid #bae6fd" }}>
-              {staff && <img src={staff.photo} alt={name} style={{ width: 22, height: 22, borderRadius: "50%", objectFit: "cover" }} />}
-              <span style={{ fontSize: 12, color: "#0369a1", fontWeight: 500 }}>{name}</span>
-              <button onClick={e => { e.stopPropagation(); toggle(name); }} style={{ background: "none", border: "none", color: "#94a3b8", cursor: "pointer", fontSize: 14, lineHeight: 1, padding: 0, marginLeft: 2 }}>×</button>
-            </div>
-          );
-        }) : <span style={{ fontSize: 14, color: "#94a3b8" }}>Select team members…</span>}
-      </div>
-      {open && (
-        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 999, background: "#fff", border: "1px solid #e2e8f0", borderRadius: 8, boxShadow: "0 8px 24px rgba(0,0,0,0.12)", maxHeight: 320, overflow: "hidden", display: "flex", flexDirection: "column" }}>
-          <div style={{ padding: "8px 10px", borderBottom: "1px solid #f1f5f9" }}>
-            <input autoFocus value={query} onChange={e => setQuery(e.target.value)} placeholder="Search name or role…" style={{ width: "100%", border: "none", outline: "none", fontSize: 13, color: "#1e293b", background: "transparent" }} />
-          </div>
-          <div style={{ overflowY: "auto", maxHeight: 260 }}>
-            {filtered.map(s => {
-              const isSelected = selected.includes(s.name);
-              return (
-                <div key={s.name} onClick={() => toggle(s.name)} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", cursor: "pointer", background: isSelected ? "#f0f9ff" : "#fff", borderBottom: "1px solid #f8fafc" }}
-                  onMouseEnter={e => e.currentTarget.style.background = "#f8fafc"}
-                  onMouseLeave={e => e.currentTarget.style.background = isSelected ? "#f0f9ff" : "#fff"}>
-                  <img src={s.photo} alt={s.name} style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
-                  <div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: "#1e293b" }}>{s.name}</div>
-                    <div style={{ fontSize: 11, color: "#64748b" }}>{s.role}</div>
-                  </div>
-                  {isSelected && <span style={{ marginLeft: "auto", color: "#0ea5e9", fontSize: 14 }}>✓</span>}
-                </div>
-              );
-            })}
-            {filtered.length === 0 && <div style={{ padding: "12px", fontSize: 13, color: "#94a3b8" }}>No results</div>}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function Field({ label, value, onChange, type = "text", placeholder = "", mono = false }) {
->>>>>>> 25bc2165c1813548521ab06113bbc8d2e3cf52b9
   const base = { fontFamily: mono ? "monospace" : "inherit", fontSize: 13, color: "#0f172a", background: "transparent", border: "none", borderBottom: "1.5px solid #e2e8f0", outline: "none", width: "100%", padding: "4px 0", resize: "none", lineHeight: 1.6 };
   const [focused, setFocused] = useState(false);
   if (type === "textarea") return (<div style={{ marginBottom: 14 }}>{label && <div style={styles.fieldLabel}>{label}</div>}<textarea rows={3} value={numeric && !focused ? fmtComma(value) : value} onChange={e => onChange(numeric ? e.target.value.replace(/,/g, "") : e.target.value)} placeholder={placeholder} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} style={{ ...base, borderBottom: `1.5px solid ${focused ? "#0ea5e9" : "#e2e8f0"}`, paddingTop: 6 }} /></div>);
@@ -413,13 +259,8 @@ function ActionTable({ rows, onChange }) {
               <td style={styles.tdNum}>{String(i + 1).padStart(2, "0")}</td>
               <td style={styles.td}><textarea value={row.action} onChange={e => { onChange(i, "action", e.target.value); e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }} onInput={e => { e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }} placeholder="Enter action item..." style={{ ...styles.inlineInput, resize: "none", minHeight: 32, height: "auto", overflow: "hidden", lineHeight: "1.4", padding: "4px 6px", boxSizing: "border-box", display: "block", width: "100%" }} rows={1} /></td>
               <td style={styles.td}><input value={row.owner} onChange={e => onChange(i, "owner", e.target.value)} placeholder="Name" style={{ ...styles.inlineInput, textAlign: "center" }} /></td>
-<<<<<<< HEAD
               <td style={styles.td}><RiskStatusBar value={row.status || ""} onChange={v => onChange(i, "status", v)} /></td>
               <td style={styles.td}><button onClick={() => { const next = rows.filter((_, j) => j !== i); onChange("_replace", null, next); }} style={styles.delBtn}>Ã</button></td>
-=======
-              <td style={styles.td}><ActionStatusBar value={row.status || ""} onChange={v => onChange(i, "status", v)} /></td>
-              <td style={styles.td}><button onClick={() => { const next = rows.filter((_, j) => j !== i); onChange("_replace", null, next); }} style={styles.delBtn}>×</button></td>
->>>>>>> 25bc2165c1813548521ab06113bbc8d2e3cf52b9
             </tr>
           ))}
         </tbody>
@@ -430,11 +271,7 @@ function ActionTable({ rows, onChange }) {
 }
 
 function ProgramTable({ rows, onChange }) {
-<<<<<<< HEAD
   return (<div style={{ marginBottom: 8 }}><table style={{ width: "100%", borderCollapse: "collapse" }}><thead><tr><th style={{ ...styles.th, textAlign: "left", width: "34%" }}>Stage</th><th style={{ ...styles.th, textAlign: "left" }}>Baseline Duration</th><th style={{ ...styles.th, textAlign: "left" }}>Actual Duration</th><th style={{ ...styles.th, width: 32 }}></th></tr></thead><tbody>{rows.map((row, i) => (<tr key={i}><td style={styles.td}><input value={row.stage} onChange={e => onChange(i, "stage", e.target.value)} placeholder="Stage name" style={styles.inlineInput} /></td><td style={styles.td}><input value={row.baseline} onChange={e => onChange(i, "baseline", e.target.value)} placeholder="e.g. 8 weeks" style={styles.inlineInput} /></td><td style={styles.td}><input value={row.actual} onChange={e => onChange(i, "actual", e.target.value)} placeholder="e.g. 10 weeks" style={styles.inlineInput} /></td><td style={styles.td}><button onClick={() => { const next = rows.filter((_, j) => j !== i); onChange("_replace", null, next); }} style={styles.delBtn}>Ã</button></td></tr>))}</tbody></table><button onClick={() => onChange("_add", null, null)} style={styles.addBtn}>+ Add stage</button></div>);
-=======
-  return (<div style={{ marginBottom: 8 }}><table style={{ width: "100%", borderCollapse: "collapse" }}><thead><tr><th style={{ ...styles.th, textAlign: "left", width: "34%" }}>Stage</th><th style={{ ...styles.th, textAlign: "left" }}>Baseline Duration</th><th style={{ ...styles.th, textAlign: "left" }}>Baseline Start</th><th style={{ ...styles.th, textAlign: "left" }}>Baseline End</th><th style={{ ...styles.th, textAlign: "left" }}>Actual Duration</th><th style={{ ...styles.th, textAlign: "left" }}>Actual Start</th><th style={{ ...styles.th, textAlign: "left" }}>Actual End</th><th style={{ ...styles.th, width: 32 }}></th></tr></thead><tbody>{rows.map((row, i) => (<tr key={i}><td style={styles.td}><input value={row.stage} onChange={e => onChange(i, "stage", e.target.value)} placeholder="Stage name" style={styles.inlineInput} /></td><td style={styles.td}><input value={row.baseline} onChange={e => onChange(i, "baseline", e.target.value)} placeholder="e.g. 8 weeks" style={styles.inlineInput} /></td><td style={styles.td}><input value={row.baselineStart || ""} onChange={e => onChange(i, "baselineStart", e.target.value)} placeholder="dd/mm" maxLength={5} style={{ ...styles.inlineInput, textAlign: "center", width: 60 }} /></td><td style={styles.td}><input value={row.baselineEnd || ""} onChange={e => onChange(i, "baselineEnd", e.target.value)} placeholder="dd/mm" maxLength={5} style={{ ...styles.inlineInput, textAlign: "center", width: 60 }} /></td><td style={styles.td}><input value={row.actual} onChange={e => onChange(i, "actual", e.target.value)} placeholder="e.g. 10 weeks" style={styles.inlineInput} /></td><td style={styles.td}><input value={row.actualStart || ""} onChange={e => onChange(i, "actualStart", e.target.value)} placeholder="dd/mm" maxLength={5} style={{ ...styles.inlineInput, textAlign: "center", width: 60 }} /></td><td style={styles.td}><input value={row.actualEnd || ""} onChange={e => onChange(i, "actualEnd", e.target.value)} placeholder="dd/mm" maxLength={5} style={{ ...styles.inlineInput, textAlign: "center", width: 60 }} /></td><td style={styles.td}><button onClick={() => { const next = rows.filter((_, j) => j !== i); onChange("_replace", null, next); }} style={styles.delBtn}>×</button></td></tr>))}</tbody></table><button onClick={() => onChange("_add", null, null)} style={styles.addBtn}>+ Add stage</button></div>);
->>>>>>> 25bc2165c1813548521ab06113bbc8d2e3cf52b9
 }
 
 function CombinedPaymentTable({ rows, onChange }) {
@@ -509,13 +346,8 @@ function CriticalIssuesTable({ rows, onChange }) {
   );
 }
 
-<<<<<<< HEAD
 // âââ BUDGET TREND CHART âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function BudgetTrendChart({ budgetHistory, internalBudget, actualSpent, onManualUpdate }) {
-=======
-// ─── BUDGET TREND CHART ───────────────────────────────────────────────────────
-function BudgetTrendChart({ budgetHistory, internalBudget, availableBudget, actualSpent, onManualUpdate }) {
->>>>>>> 25bc2165c1813548521ab06113bbc8d2e3cf52b9
   const W = 820, H = 320;
   const PAD = { top: 24, right: 24, bottom: 52, left: 88 };
   const chartW = W - PAD.left - PAD.right;
@@ -633,11 +465,7 @@ function BudgetTrendChart({ budgetHistory, internalBudget, availableBudget, actu
           {dataPoints.map((pt, i) => pt.internal !== null && (
             <g key={`ib-${i}`}>
               <circle cx={xPos(i)} cy={yPos(pt.internal)} r={4} fill="#22c55e" stroke="#ffffff" strokeWidth="1.5" />
-<<<<<<< HEAD
               <title>Internal Budget â {pt.label}: AED {pt.internal.toLocaleString()}</title>
-=======
-              <title>Available Budget to Date — {pt.label}: AED {pt.internal.toLocaleString()}</title>
->>>>>>> 25bc2165c1813548521ab06113bbc8d2e3cf52b9
             </g>
           ))}
           {dataPoints.map((pt, i) => pt.actual !== null && (
@@ -821,7 +649,7 @@ export default function App() {
   if (!loaded) return (<div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", background: "#f8fafc" }}><div style={{ fontSize: 13, color: "#94a3b8" }}>Loading...</div></div>);
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f8fafc", fontFamily: "'DM Sans', system-ui, sans-serif", color: "#0f172a" }}>
+    <div style={{ position: "relative", minHeight: "100vh", background: "#f8fafc", fontFamily: "'DM Sans', system-ui, sans-serif", color: "#0f172a" }}>
       <div style={{ position: "sticky", top: 0, zIndex: 100, background: "#ffffff", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", padding: "0 32px", height: 52, gap: 20 }}>
         <div style={{ fontWeight: 800, fontSize: 15, letterSpacing: "0.05em", color: "#0f172a", borderRight: "1px solid #e2e8f0", paddingRight: 20, marginRight: 4 }}>DesignTomorrow</div>
         <input value={data.projectCode} onChange={e => set("projectCode", e.target.value)} placeholder="PROJECT CODE" style={{ ...navInput, width: 110, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }} />
@@ -842,6 +670,7 @@ export default function App() {
         </button>
       </div>
 
+        <img src="https://designtomorrow.com/wp-content/uploads/2022/11/logo_black.png" alt="DesignTomorrow" style={{ position: "relative", minHeight: "100vh", background: maxWidth: 900, margin: position: "fixed", left: 20, top: "50%", transform: "translateY(-50%)", width: 80, opacity: 0.8, pointerEvents: "none", zIndex: 0"0 auto""#f8fafc" }} />
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "40px 32px 80px" }}>
 
         {/* 01 Â· PROJECT OVERVIEW */}
@@ -852,11 +681,7 @@ export default function App() {
         </TwoCol>
         <StaffPickerMulti label="Team This Week" value={data.teamThisWeek} onChange={v => set("teamThisWeek", v)} />
         <Field label="Subconsultants" value={data.subconsultants} onChange={v => set("subconsultants", v)} type="textarea" placeholder="List all sub-consultants" />
-<<<<<<< HEAD
         <Field label="Contract Value" value={data.contractValue} onChange={v => set("contractValue", v)} placeholder="AED" numeric={true} />
-=======
-        <CurrencyField label="Contract Value" value={data.contractValue} onChange={v => set("contractValue", v)} />
->>>>>>> 25bc2165c1813548521ab06113bbc8d2e3cf52b9
         <PageBreak />
 
         {/* 02 Â· PROJECT STATUS */}
@@ -877,27 +702,14 @@ export default function App() {
         {!hideBudget && <>
           <TwoCol><div><div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}><div style={styles.fieldLabel}>Budget Status</div><BudgetStatusBadge value={data.budgetStatus} onChange={v => set("budgetStatus", v)} /></div></div><div /></TwoCol>
           <TwoCol>
-<<<<<<< HEAD
             <Field label="Internal Budget" value={data.internalBudget} onChange={v => set("internalBudget", v)} placeholder="AED" numeric={true} />
             <Field label="External Sub-Consultants Budget" value={data.externalBudget} onChange={v => set("externalBudget", v)} placeholder="AED" numeric={true} />
-=======
-            <CurrencyField label="Internal Budget" value={data.internalBudget} onChange={v => set("internalBudget", v)} />
-            <CurrencyField label="External Sub-Consultants Budget" value={data.externalBudget} onChange={v => set("externalBudget", v)} />
->>>>>>> 25bc2165c1813548521ab06113bbc8d2e3cf52b9
             <div style={{ marginBottom: 14 }}><div style={styles.fieldLabel}>Available Budget To-Date</div><div style={{ fontSize: 13, color: "#0f172a", padding: "4px 0", borderBottom: "1.5px solid #e2e8f0", fontWeight: 600 }}>{(() => { const pct = parseFloat((data.progressPct || "0")) || 0; const budget = parseFloat((data.internalBudget || "").replace(/[^0-9.-]/g, "")) || 0; const val = (pct / 100) * budget; return (pct === 0 && budget === 0) ? "AED" : "AED " + val.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 }); })()}</div></div>
-<<<<<<< HEAD
             <Field label="Actual Spent To-Date" value={data.actualSpent} onChange={v => set("actualSpent", v)} placeholder="AED" numeric={true} />
-=======
-            <CurrencyField label="Actual Spent To-Date (from Moment)" value={data.actualSpent} onChange={v => set("actualSpent", v)} />
->>>>>>> 25bc2165c1813548521ab06113bbc8d2e3cf52b9
           </TwoCol>
           <div style={{ marginBottom: 14 }}><div style={styles.fieldLabel}>Balance To-Date</div><BalanceIndicator available={String((parseFloat(data.progressPct || "0") / 100) * (parseFloat((data.internalBudget || "").replace(/[^0-9.-]/g, "")) || 0))} spent={data.actualSpent} /></div>
           <TwoCol>
-<<<<<<< HEAD
             <Field label="Value of Invoice Issued" value={data.invoiceIssued} onChange={v => set("invoiceIssued", v)} placeholder="AED" numeric={true} />
-=======
-            <CurrencyField label="Value of Invoice Issued" value={data.invoiceIssued} onChange={v => set("invoiceIssued", v)} />
->>>>>>> 25bc2165c1813548521ab06113bbc8d2e3cf52b9
             <div style={{ marginBottom: 14 }}><div style={styles.fieldLabel}>External Spent To-Date</div><div style={{ fontSize: 13, color: "#0f172a", padding: "4px 0", borderBottom: "1.5px solid #e2e8f0", fontWeight: 600 }}>{(() => { const pct = parseFloat((data.progressPct || "0")) || 0; const budget = parseFloat((data.externalBudget || "").replace(/[^0-9.-]/g, "")) || 0; const val = (pct / 100) * budget; return (pct === 0 && budget === 0) ? "AED" : "AED " + val.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 }); })()}</div></div>
           </TwoCol>
           <div style={{ marginBottom: 14 }}><div style={styles.fieldLabel}>Cash Variance</div><CashVarianceIndicator invoiceIssued={data.invoiceIssued} actualSpent={data.actualSpent} externalSpent={"" + ((parseFloat((data.progressPct || "0")) || 0) / 100 * (parseFloat((data.externalBudget || "").replace(/[^0-9.-]/g, "")) || 0))} /></div>
