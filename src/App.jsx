@@ -171,13 +171,13 @@ function StatusBadge({ value, onChange }) {
   const options = ["Signed", "Pending", "LOA Issued", "Awaited"];
   const colors = { Signed: { bg: "#dcfce7", fg: "#166534" }, Pending: { bg: "#fef9c3", fg: "#854d0e" }, "LOA Issued": { bg: "#dbeafe", fg: "#1e40af" }, Awaited: { bg: "#fee2e2", fg: "#991b1b" }, "": { bg: "#f1f5f9", fg: "#64748b" } };
   const c = colors[value] || colors[""];
-  return (<div style={{ position: "relative", display: "inline-block" }}><select value={value} onChange={e => onChange(e.target.value)} style={{ appearance: "none", background: c.bg, color: c.fg, border: "none", borderRadius: 4, padding: "3px 24px 3px 10px", fontSize: 12, fontWeight: 600, cursor: "pointer", outline: "none" }}><option value="">Select</option>{options.map(o => <option key={o}>{o}</option>)}</select><span style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", fontSize: 10, color: c.fg }}>â¾</span></div>);
+  return (<div style={{ position: "relative", display: "inline-block" }}><select value={value} onChange={e => onChange(e.target.value)} style={{ appearance: "none", background: c.bg, color: c.fg, border: "none", borderRadius: 4, padding: "3px 24px 3px 10px", fontSize: 12, fontWeight: 600, cursor: "pointer", outline: "none" }}><option value="">Select</option>{options.map(o => <option key={o}>{o}</option>)}</select><span style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", fontSize: 10, color: c.fg }}>▾</span></div>);
 }
 
 function BudgetStatusBadge({ value, onChange }) {
   const opts = ["Approved", "Pending"];
   const c = value === "Approved" ? { bg: "#dcfce7", fg: "#166534" } : { bg: "#fef9c3", fg: "#854d0e" };
-  return (<div style={{ position: "relative", display: "inline-block" }}><select value={value} onChange={e => onChange(e.target.value)} style={{ appearance: "none", background: c.bg, color: c.fg, border: "none", borderRadius: 4, padding: "3px 24px 3px 10px", fontSize: 12, fontWeight: 600, cursor: "pointer", outline: "none" }}><option value="">Select</option>{opts.map(o => <option key={o}>{o}</option>)}</select><span style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", fontSize: 10, color: c.fg }}>â¾</span></div>);
+  return (<div style={{ position: "relative", display: "inline-block" }}><select value={value} onChange={e => onChange(e.target.value)} style={{ appearance: "none", background: c.bg, color: c.fg, border: "none", borderRadius: 4, padding: "3px 24px 3px 10px", fontSize: 12, fontWeight: 600, cursor: "pointer", outline: "none" }}><option value="">Select</option>{opts.map(o => <option key={o}>{o}</option>)}</select><span style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", fontSize: 10, color: c.fg }}>▾</span></div>);
 }
 
 function RiskStatusBar({ value, onChange }) {
@@ -196,7 +196,7 @@ function RiskStatusBar({ value, onChange }) {
         <option value="">Select</option>
         {opts.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
-      <span style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", fontSize: 10, color: fg }}>â¾</span>
+      <span style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", fontSize: 10, color: fg }}>▾</span>
     </div>
   );
 }
@@ -236,7 +236,7 @@ function SectionHead({ title, index }) {
     <div style={{ marginBottom: 20 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
         <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", color: "#94a3b8", textTransform: "uppercase", whiteSpace: "nowrap" }}>
-          {String(index + 1).padStart(2, "0")} Â· {title}
+          {String(index + 1).padStart(2, "0")} · {title}
         </div>
         <div style={{ flex: 1, height: 1, background: "#e2e8f0" }} />
       </div>
@@ -260,7 +260,7 @@ function ActionTable({ rows, onChange }) {
               <td style={styles.td}><textarea value={row.action} onChange={e => { onChange(i, "action", e.target.value); e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }} onInput={e => { e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }} placeholder="Enter action item..." style={{ ...styles.inlineInput, resize: "none", minHeight: 32, height: "auto", overflow: "hidden", lineHeight: "1.4", padding: "4px 6px", boxSizing: "border-box", display: "block", width: "100%" }} rows={1} /></td>
               <td style={styles.td}><input value={row.owner} onChange={e => onChange(i, "owner", e.target.value)} placeholder="Name" style={{ ...styles.inlineInput, textAlign: "center" }} /></td>
               <td style={styles.td}><RiskStatusBar value={row.status || ""} onChange={v => onChange(i, "status", v)} /></td>
-              <td style={styles.td}><button onClick={() => { const next = rows.filter((_, j) => j !== i); onChange("_replace", null, next); }} style={styles.delBtn}>Ã</button></td>
+              <td style={styles.td}><button onClick={() => { const next = rows.filter((_, j) => j !== i); onChange("_replace", null, next); }} style={styles.delBtn}>×</button></td>
             </tr>
           ))}
         </tbody>
@@ -271,7 +271,7 @@ function ActionTable({ rows, onChange }) {
 }
 
 function ProgramTable({ rows, onChange }) {
-  return (<div style={{ marginBottom: 8 }}><table style={{ width: "100%", borderCollapse: "collapse" }}><thead><tr><th style={{ ...styles.th, textAlign: "left", width: "34%" }}>Stage</th><th style={{ ...styles.th, textAlign: "left" }}>Baseline Duration</th><th style={{ ...styles.th, textAlign: "left" }}>Actual Duration</th><th style={{ ...styles.th, width: 32 }}></th></tr></thead><tbody>{rows.map((row, i) => (<tr key={i}><td style={styles.td}><input value={row.stage} onChange={e => onChange(i, "stage", e.target.value)} placeholder="Stage name" style={styles.inlineInput} /></td><td style={styles.td}><input value={row.baseline} onChange={e => onChange(i, "baseline", e.target.value)} placeholder="e.g. 8 weeks" style={styles.inlineInput} /></td><td style={styles.td}><input value={row.actual} onChange={e => onChange(i, "actual", e.target.value)} placeholder="e.g. 10 weeks" style={styles.inlineInput} /></td><td style={styles.td}><button onClick={() => { const next = rows.filter((_, j) => j !== i); onChange("_replace", null, next); }} style={styles.delBtn}>Ã</button></td></tr>))}</tbody></table><button onClick={() => onChange("_add", null, null)} style={styles.addBtn}>+ Add stage</button></div>);
+  return (<div style={{ marginBottom: 8 }}><table style={{ width: "100%", borderCollapse: "collapse" }}><thead><tr><th style={{ ...styles.th, textAlign: "left", width: "34%" }}>Stage</th><th style={{ ...styles.th, textAlign: "left" }}>Baseline Duration</th><th style={{ ...styles.th, textAlign: "left" }}>Actual Duration</th><th style={{ ...styles.th, width: 32 }}></th></tr></thead><tbody>{rows.map((row, i) => (<tr key={i}><td style={styles.td}><input value={row.stage} onChange={e => onChange(i, "stage", e.target.value)} placeholder="Stage name" style={styles.inlineInput} /></td><td style={styles.td}><input value={row.baseline} onChange={e => onChange(i, "baseline", e.target.value)} placeholder="e.g. 8 weeks" style={styles.inlineInput} /></td><td style={styles.td}><input value={row.actual} onChange={e => onChange(i, "actual", e.target.value)} placeholder="e.g. 10 weeks" style={styles.inlineInput} /></td><td style={styles.td}><button onClick={() => { const next = rows.filter((_, j) => j !== i); onChange("_replace", null, next); }} style={styles.delBtn}>×</button></td></tr>))}</tbody></table><button onClick={() => onChange("_add", null, null)} style={styles.addBtn}>+ Add stage</button></div>);
 }
 
 function CombinedPaymentTable({ rows, onChange }) {
@@ -279,9 +279,9 @@ function CombinedPaymentTable({ rows, onChange }) {
   const statusColors = { Paid: { bg: "#dcfce7", fg: "#166534" }, "In Progress": { bg: "#fef9c3", fg: "#854d0e" }, Overdue: { bg: "#fee2e2", fg: "#991b1b" }, Partial: { bg: "#dbeafe", fg: "#1e40af" }, "": { bg: "#f1f5f9", fg: "#64748b" } };
   function StatusSelect({ value, onChange }) {
     const c = statusColors[value] || statusColors[""];
-    return (<div style={{ position: "relative", display: "inline-block" }}><select value={value} onChange={e => onChange(e.target.value)} style={{ appearance: "none", background: c.bg, color: c.fg, border: "none", borderRadius: 4, padding: "3px 24px 3px 10px", fontSize: 12, fontWeight: 600, cursor: "pointer", outline: "none", width: "100%" }}><option value="">Select</option>{statusOptions.map(o => <option key={o}>{o}</option>)}</select><span style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", fontSize: 10, color: c.fg }}>â¾</span></div>);
+    return (<div style={{ position: "relative", display: "inline-block" }}><select value={value} onChange={e => onChange(e.target.value)} style={{ appearance: "none", background: c.bg, color: c.fg, border: "none", borderRadius: 4, padding: "3px 24px 3px 10px", fontSize: 12, fontWeight: 600, cursor: "pointer", outline: "none", width: "100%" }}><option value="">Select</option>{statusOptions.map(o => <option key={o}>{o}</option>)}</select><span style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", fontSize: 10, color: c.fg }}>▾</span></div>);
   }
-  return (<div style={{ marginBottom: 8 }}><table style={{ width: "100%", borderCollapse: "collapse" }}><thead><tr><th style={{ ...styles.th, textAlign: "left", width: "50%" }}>Invoice Milestone</th><th style={{ ...styles.th, textAlign: "center", width: "22%" }}>Client Status</th><th style={{ ...styles.th, textAlign: "center", width: "22%" }}>Sub-Consultant Status</th><th style={{ ...styles.th, width: 32 }}></th></tr></thead><tbody>{rows.map((row, i) => (<tr key={i}><td style={styles.td}><input value={row.milestone} onChange={e => onChange(i, "milestone", e.target.value)} placeholder="e.g. Invoice 01 - Concept Design" style={styles.inlineInput} /></td><td style={{ ...styles.td, textAlign: "center" }}><StatusSelect value={row.clientStatus || ""} onChange={v => onChange(i, "clientStatus", v)} /></td><td style={{ ...styles.td, textAlign: "center" }}><StatusSelect value={row.subsStatus || ""} onChange={v => onChange(i, "subsStatus", v)} /></td><td style={styles.td}><button onClick={() => { const next = rows.filter((_, j) => j !== i); onChange("_replace", null, next); }} style={styles.delBtn}>Ã</button></td></tr>))}</tbody></table><button onClick={() => onChange("_add", null, null)} style={styles.addBtn}>+ Add row</button></div>);
+  return (<div style={{ marginBottom: 8 }}><table style={{ width: "100%", borderCollapse: "collapse" }}><thead><tr><th style={{ ...styles.th, textAlign: "left", width: "50%" }}>Invoice Milestone</th><th style={{ ...styles.th, textAlign: "center", width: "22%" }}>Client Status</th><th style={{ ...styles.th, textAlign: "center", width: "22%" }}>Sub-Consultant Status</th><th style={{ ...styles.th, width: 32 }}></th></tr></thead><tbody>{rows.map((row, i) => (<tr key={i}><td style={styles.td}><input value={row.milestone} onChange={e => onChange(i, "milestone", e.target.value)} placeholder="e.g. Invoice 01 - Concept Design" style={styles.inlineInput} /></td><td style={{ ...styles.td, textAlign: "center" }}><StatusSelect value={row.clientStatus || ""} onChange={v => onChange(i, "clientStatus", v)} /></td><td style={{ ...styles.td, textAlign: "center" }}><StatusSelect value={row.subsStatus || ""} onChange={v => onChange(i, "subsStatus", v)} /></td><td style={styles.td}><button onClick={() => { const next = rows.filter((_, j) => j !== i); onChange("_replace", null, next); }} style={styles.delBtn}>×</button></td></tr>))}</tbody></table><button onClick={() => onChange("_add", null, null)} style={styles.addBtn}>+ Add row</button></div>);
 }
 
 function fmtComma(val) {
@@ -296,8 +296,8 @@ function CashVarianceIndicator({ invoiceIssued, actualSpent, externalSpent }) {
   const variance = parse(invoiceIssued) - parse(actualSpent) - parse(externalSpent);
   const isPos = variance >= 0;
   const isEmpty = !invoiceIssued && !actualSpent && !externalSpent;
-  const formatted = isEmpty ? "â" : (isPos ? "+" : "") + variance.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-  return (<div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: isEmpty ? "#f1f5f9" : isPos ? "#dcfce7" : "#fee2e2", color: isEmpty ? "#64748b" : isPos ? "#166534" : "#991b1b", borderRadius: 4, padding: "4px 12px", fontSize: 13, fontWeight: 700 }}>{!isEmpty && <span style={{ fontSize: 11 }}>{isPos ? "â²" : "â¼"}</span>}Cash Variance: {formatted}</div>);
+  const formatted = isEmpty ? "—" : (isPos ? "+" : "") + variance.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  return (<div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: isEmpty ? "#f1f5f9" : isPos ? "#dcfce7" : "#fee2e2", color: isEmpty ? "#64748b" : isPos ? "#166534" : "#991b1b", borderRadius: 4, padding: "4px 12px", fontSize: 13, fontWeight: 700 }}>{!isEmpty && <span style={{ fontSize: 11 }}>{isPos ? "▲" : "▼"}</span>}Cash Variance: {formatted}</div>);
 }
 
 function BalanceIndicator({ available, spent }) {
@@ -305,8 +305,8 @@ function BalanceIndicator({ available, spent }) {
   const sp = parseFloat(spent.replace(/[^0-9.-]/g, "")) || 0;
   const balance = av - sp;
   const isPos = balance >= 0;
-  const formatted = balance === 0 ? "â" : (isPos ? "+" : "") + balance.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-  return (<div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: balance === 0 ? "#f1f5f9" : isPos ? "#dcfce7" : "#fee2e2", color: balance === 0 ? "#64748b" : isPos ? "#166534" : "#991b1b", borderRadius: 4, padding: "4px 12px", fontSize: 13, fontWeight: 700 }}>{balance !== 0 && <span style={{ fontSize: 11 }}>{isPos ? "â²" : "â¼"}</span>}Balance: {formatted}</div>);
+  const formatted = balance === 0 ? "—" : (isPos ? "+" : "") + balance.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  return (<div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: balance === 0 ? "#f1f5f9" : isPos ? "#dcfce7" : "#fee2e2", color: balance === 0 ? "#64748b" : isPos ? "#166534" : "#991b1b", borderRadius: 4, padding: "4px 12px", fontSize: 13, fontWeight: 700 }}>{balance !== 0 && <span style={{ fontSize: 11 }}>{isPos ? "▲" : "▼"}</span>}Balance: {formatted}</div>);
 }
 
 function CPIIndicator({ contractValue, progressPct, externalSpent, actualSpent }) {
@@ -315,9 +315,9 @@ function CPIIndicator({ contractValue, progressPct, externalSpent, actualSpent }
   const totalSpent = parse(externalSpent) + parse(actualSpent);
   const isEmpty = !contractValue && !progressPct && !externalSpent && !actualSpent;
   const cpi = (!isEmpty && totalSpent !== 0) ? (earned / totalSpent) : null;
-  const formatted = cpi === null ? "â" : cpi.toFixed(2);
+  const formatted = cpi === null ? "—" : cpi.toFixed(2);
   const isGood = cpi !== null && cpi >= 1;
-  return (<div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: cpi === null ? "#f1f5f9" : isGood ? "#dcfce7" : "#fee2e2", color: cpi === null ? "#64748b" : isGood ? "#166534" : "#991b1b", borderRadius: 4, padding: "4px 12px", fontSize: 13, fontWeight: 700 }}>{cpi !== null && <span style={{ fontSize: 11 }}>{isGood ? "â²" : "â¼"}</span>}CPI: {formatted}</div>);
+  return (<div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: cpi === null ? "#f1f5f9" : isGood ? "#dcfce7" : "#fee2e2", color: cpi === null ? "#64748b" : isGood ? "#166534" : "#991b1b", borderRadius: 4, padding: "4px 12px", fontSize: 13, fontWeight: 700 }}>{cpi !== null && <span style={{ fontSize: 11 }}>{isGood ? "▲" : "▼"}</span>}CPI: {formatted}</div>);
 }
 
 function CriticalIssuesTable({ rows, onChange }) {
@@ -336,7 +336,7 @@ function CriticalIssuesTable({ rows, onChange }) {
               <td style={styles.tdNum}>{String(i + 1).padStart(2, "0")}</td>
               <td style={styles.td}><input value={row.issue} onChange={e => onChange(i, "issue", e.target.value)} placeholder="Describe issue or risk..." style={styles.inlineInput} /></td>
               <td style={styles.td}><RiskStatusBar value={row.status || ""} onChange={v => onChange(i, "status", v)} /></td>
-              <td style={styles.td}><button onClick={() => { const next = rows.filter((_, j) => j !== i); onChange("_replace", null, next); }} style={styles.delBtn}>Ã</button></td>
+              <td style={styles.td}><button onClick={() => { const next = rows.filter((_, j) => j !== i); onChange("_replace", null, next); }} style={styles.delBtn}>×</button></td>
             </tr>
           ))}
         </tbody>
@@ -346,7 +346,7 @@ function CriticalIssuesTable({ rows, onChange }) {
   );
 }
 
-// âââ BUDGET TREND CHART âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// --- BUDGET TREND CHART -------------------------------------------------------
 function BudgetTrendChart({ budgetHistory, internalBudget, availableBudget, actualSpent, onManualUpdate }) {
   const W = 820, H = 320;
   const PAD = { top: 24, right: 24, bottom: 52, left: 88 };
@@ -422,7 +422,7 @@ function BudgetTrendChart({ budgetHistory, internalBudget, availableBudget, actu
     <div style={{ marginTop: 28, marginBottom: 8 }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
         <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "#94a3b8", textTransform: "uppercase" }}>
-          Budget Trend â Weekly Snapshot (Mondays 18:00)
+          Budget Trend — Weekly Snapshot (Mondays 18:00)
         </div>
         <div style={{ display: "flex", gap: 20, alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -465,28 +465,28 @@ function BudgetTrendChart({ budgetHistory, internalBudget, availableBudget, actu
           {dataPoints.map((pt, i) => pt.internal !== null && (
             <g key={`ib-${i}`}>
               <circle cx={xPos(i)} cy={yPos(pt.internal)} r={4} fill="#22c55e" stroke="#ffffff" strokeWidth="1.5" />
-              <title>Internal Budget â {pt.label}: AED {pt.internal.toLocaleString()}</title>
+              <title>Internal Budget — {pt.label}: AED {pt.internal.toLocaleString()}</title>
             </g>
           ))}
           {dataPoints.map((pt, i) => pt.actual !== null && (
             <g key={`as-${i}`}>
               <circle cx={xPos(i)} cy={yPos(pt.actual)} r={4} fill="#ef4444" stroke="#ffffff" strokeWidth="1.5" />
-              <title>Actual Spent â {pt.label}: AED {pt.actual.toLocaleString()}</title>
+              <title>Actual Spent — {pt.label}: AED {pt.actual.toLocaleString()}</title>
             </g>
           ))}
           {!hasInternalData && !hasActualData && (
             <text x={W / 2} y={H / 2} textAnchor="middle" style={{ fontSize: 12, fill: "#cbd5e1", fontFamily: "system-ui" }}>
-              Data captured every Monday at 18:00 â click Update to record now
+              Data captured every Monday at 18:00 — click Update to record now
             </text>
           )}
         </svg>
       </div>
 
-      {/* ââ Update button row ââ */}
+      {/* -- Update button row -- */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 12, marginTop: 10 }}>
         {justUpdated && (
           <span style={{ fontSize: 11, color: "#10b981", fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
-            <span style={{ fontSize: 13 }}>â</span> Chart updated for week of {currentWeekLabel}
+            <span style={{ fontSize: 13 }}>✓</span> Chart updated for week of {currentWeekLabel}
           </span>
         )}
         {currentSnap && !justUpdated && (
@@ -512,7 +512,7 @@ function BudgetTrendChart({ budgetHistory, internalBudget, availableBudget, actu
             gap: 6,
           }}
         >
-          <span style={{ fontSize: 12 }}>â»</span> Update Chart
+          <span style={{ fontSize: 12 }}>↻</span> Update Chart
         </button>
       </div>
     </div>
@@ -520,14 +520,33 @@ function BudgetTrendChart({ budgetHistory, internalBudget, availableBudget, actu
 }
 
 const STAFF_OPTIONS = [
-  "Piyush Bajpai",
-  "Architect 1",
-  "Architect 2",
-  "Project Manager",
-  "Engineer 1",
-  "Engineer 2",
-  "Designer 1",
-  "Designer 2",
+  { name: "Dara John Towhidi", photo: "https://designtomorrow.com/wp-content/uploads/2023/08/Dara.jpg" },
+  { name: "Maya", photo: "https://designtomorrow.com/wp-content/uploads/2024/08/Maya.jpg" },
+  { name: "Munehiko", photo: "https://designtomorrow.com/wp-content/uploads/2025/10/Mune.png" },
+  { name: "Luca", photo: "https://designtomorrow.com/wp-content/uploads/2023/08/Luca.jpg" },
+  { name: "Nacho", photo: "https://designtomorrow.com/wp-content/uploads/2026/03/Gemini_Generated_Image_zazx1tzazx1tzazx.png" },
+  { name: "Fay", photo: "https://designtomorrow.com/wp-content/uploads/2026/02/Fay-BW-revised.png" },
+  { name: "George", photo: "https://designtomorrow.com/wp-content/uploads/2023/10/George.jpg" },
+  { name: "Ibrahim", photo: "https://designtomorrow.com/wp-content/uploads/2026/03/Ibrahim.png" },
+  { name: "Bruno", photo: "https://designtomorrow.com/wp-content/uploads/2026/02/Bruno-gemini.png" },
+  { name: "Alexander", photo: "https://designtomorrow.com/wp-content/uploads/2026/03/Alex-2-1.png" },
+  { name: "Arian", photo: "https://designtomorrow.com/wp-content/uploads/2023/08/Arian.jpg" },
+  { name: "Dina", photo: "https://designtomorrow.com/wp-content/uploads/2025/06/Dina_Website-scaled.jpg" },
+  { name: "Karim", photo: "https://designtomorrow.com/wp-content/uploads/2025/06/Karim_ForWebsite-scaled.jpg" },
+  { name: "Carlo Alberto", photo: "https://designtomorrow.com/wp-content/uploads/2024/09/Carlo.jpg" },
+  { name: "Alvaro", photo: "https://designtomorrow.com/wp-content/uploads/2025/12/Alvaro-NEW.png" },
+  { name: "Salvador", photo: "https://designtomorrow.com/wp-content/uploads/2025/10/salva.png" },
+  { name: "Saanchi", photo: "https://designtomorrow.com/wp-content/uploads/2024/08/Saanchi.jpg" },
+  { name: "Yara", photo: "https://designtomorrow.com/wp-content/uploads/2024/08/Yara.jpg" },
+  { name: "Tejas", photo: "https://designtomorrow.com/wp-content/uploads/2025/12/Tejas_BNW.png" },
+  { name: "Sapta", photo: "https://designtomorrow.com/wp-content/uploads/2026/03/Sapta.png" },
+  { name: "Hamza", photo: "https://designtomorrow.com/wp-content/uploads/2026/03/IMG_5206-1.png" },
+  { name: "Nadim", photo: "https://designtomorrow.com/wp-content/uploads/2026/02/Nadim-New.png" },
+  { name: "Joan", photo: "https://designtomorrow.com/wp-content/uploads/2025/10/Joan-2.png" },
+  { name: "Yomna", photo: "https://designtomorrow.com/wp-content/uploads/2026/02/Yomna-resized-1.png" },
+  { name: "Luisa", photo: "https://designtomorrow.com/wp-content/uploads/2025/10/Luisa.png" },
+  { name: "Shell", photo: "https://designtomorrow.com/wp-content/uploads/2026/03/Shell-1.png" },
+  { name: "Melissa", photo: "https://designtomorrow.com/wp-content/uploads/2025/10/Meli.png" },
 ];
 
 function StaffPicker({ label, value, onChange }) {
@@ -538,20 +557,23 @@ function StaffPicker({ label, value, onChange }) {
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
+  const selected = STAFF_OPTIONS.find(o => o.name === value);
   return (
     <div style={{ marginBottom: 14, position: "relative" }} ref={ref}>
       {label && <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "#94a3b8", textTransform: "uppercase", marginBottom: 4 }}>{label}</div>}
-      <div onClick={() => setOpen(o => !o)} style={{ fontSize: 13, color: value ? "#0f172a" : "#94a3b8", padding: "4px 0", borderBottom: "1.5px solid #e2e8f0", cursor: "pointer", minHeight: 24 }}>
+      <div onClick={() => setOpen(o => !o)} style={{ fontSize: 13, color: value ? "#0f172a" : "#94a3b8", padding: "4px 0", borderBottom: "1.5px solid #e2e8f0", cursor: "pointer", minHeight: 28, display: "flex", alignItems: "center", gap: 8 }}>
+        {selected && <img src={selected.photo} alt={selected.name} style={{ width: 22, height: 22, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />}
         {value || "Select person..."}
       </div>
       {open && (
-        <div style={{ position: "absolute", top: "100%", left: 0, zIndex: 200, background: "#fff", border: "1px solid #e2e8f0", borderRadius: 6, boxShadow: "0 4px 16px rgba(0,0,0,0.1)", minWidth: 200, maxHeight: 200, overflowY: "auto" }}>
+        <div style={{ position: "absolute", top: "100%", left: 0, zIndex: 200, background: "#fff", border: "1px solid #e2e8f0", borderRadius: 6, boxShadow: "0 4px 16px rgba(0,0,0,0.1)", minWidth: 240, maxHeight: 260, overflowY: "auto" }}>
           {STAFF_OPTIONS.map(opt => (
-            <div key={opt} onClick={() => { onChange(opt); setOpen(false); }} style={{ padding: "8px 14px", fontSize: 13, cursor: "pointer", background: value === opt ? "#f0f9ff" : "transparent", color: value === opt ? "#0ea5e9" : "#0f172a" }}>
-              {opt}
+            <div key={opt.name} onClick={() => { onChange(opt.name); setOpen(false); }} style={{ padding: "7px 12px", fontSize: 13, cursor: "pointer", background: value === opt.name ? "#f0f9ff" : "transparent", color: value === opt.name ? "#0ea5e9" : "#0f172a", display: "flex", alignItems: "center", gap: 10 }}>
+              <img src={opt.photo} alt={opt.name} style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
+              {opt.name}
             </div>
           ))}
-          <div onClick={() => { onChange(""); setOpen(false); }} style={{ padding: "8px 14px", fontSize: 12, cursor: "pointer", color: "#94a3b8", borderTop: "1px solid #f1f5f9" }}>
+          <div onClick={() => { onChange(""); setOpen(false); }} style={{ padding: "7px 12px", fontSize: 12, cursor: "pointer", color: "#94a3b8", borderTop: "1px solid #f1f5f9" }}>
             Clear
           </div>
         </div>
@@ -559,6 +581,54 @@ function StaffPicker({ label, value, onChange }) {
     </div>
   );
 }
+
+function StaffPickerMulti({ label, value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const [inputVal, setInputVal] = useState("");
+  const ref = useRef(null);
+  const selected = value ? value.split(",").map(s => s.trim()).filter(Boolean) : [];
+  useEffect(() => {
+    function handleClick(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false); }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+  const toggle = (opt) => {
+    const next = selected.includes(opt) ? selected.filter(s => s !== opt) : [...selected, opt];
+    onChange(next.join(", "));
+  };
+  const filtered = STAFF_OPTIONS.filter(o => o.name.toLowerCase().includes(inputVal.toLowerCase()));
+  return (
+    <div style={{ marginBottom: 14, position: "relative" }} ref={ref}>
+      {label && <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "#94a3b8", textTransform: "uppercase", marginBottom: 4 }}>{label}</div>}
+      <div onClick={() => setOpen(o => !o)} style={{ fontSize: 13, color: selected.length ? "#0f172a" : "#94a3b8", padding: "4px 0", borderBottom: "1.5px solid #e2e8f0", cursor: "pointer", minHeight: 28, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+        {selected.length ? selected.map(name => {
+          const member = STAFF_OPTIONS.find(o => o.name === name);
+          return member ? (
+            <span key={name} style={{ display: "inline-flex", alignItems: "center", gap: 4, background: "#f0f9ff", borderRadius: 99, padding: "2px 8px 2px 4px", fontSize: 12 }}>
+              <img src={member.photo} alt={name} style={{ width: 18, height: 18, borderRadius: "50%", objectFit: "cover" }} />
+              {name}
+            </span>
+          ) : <span key={name} style={{ fontSize: 12 }}>{name}</span>;
+        }) : "Select team members..."}
+      </div>
+      {open && (
+        <div style={{ position: "absolute", top: "100%", left: 0, zIndex: 200, background: "#fff", border: "1px solid #e2e8f0", borderRadius: 6, boxShadow: "0 4px 16px rgba(0,0,0,0.1)", minWidth: 260, maxHeight: 280, overflowY: "auto" }}>
+          <div style={{ padding: "8px 10px", borderBottom: "1px solid #f1f5f9" }}>
+            <input autoFocus value={inputVal} onChange={e => setInputVal(e.target.value)} placeholder="Search..." style={{ width: "100%", border: "none", outline: "none", fontSize: 12, background: "transparent" }} />
+          </div>
+          {filtered.map(opt => (
+            <div key={opt.name} onClick={() => toggle(opt.name)} style={{ padding: "7px 12px", fontSize: 13, cursor: "pointer", background: selected.includes(opt.name) ? "#f0f9ff" : "transparent", color: selected.includes(opt.name) ? "#0ea5e9" : "#0f172a", display: "flex", alignItems: "center", gap: 10 }}>
+              <img src={opt.photo} alt={opt.name} style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
+              <span style={{ flex: 1 }}>{opt.name}</span>
+              {selected.includes(opt.name) && <span style={{ fontSize: 12, color: "#0ea5e9" }}>&#10003;</span>}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 
 function StaffPickerMulti({ label, value, onChange }) {
   const [open, setOpen] = useState(false);
@@ -732,9 +802,9 @@ export default function App() {
       <div style={{ position: "sticky", top: 0, zIndex: 100, background: "#ffffff", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", padding: "0 32px", height: 52, gap: 20 }}>
         <div style={{ fontWeight: 800, fontSize: 15, letterSpacing: "0.05em", color: "#0f172a", borderRight: "1px solid #e2e8f0", paddingRight: 20, marginRight: 4 }}>DesignTomorrow</div>
         <input value={data.projectCode} onChange={e => set("projectCode", e.target.value)} placeholder="PROJECT CODE" style={{ ...navInput, width: 110, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }} />
-        <span style={{ color: "#e2e8f0" }}>Â·</span>
+        <span style={{ color: "#e2e8f0" }}>·</span>
         <input value={data.projectName} onChange={e => set("projectName", e.target.value)} placeholder="Project Name" style={{ ...navInput, width: 200 }} />
-        <span style={{ color: "#e2e8f0" }}>Â·</span>
+        <span style={{ color: "#e2e8f0" }}>·</span>
         <input value={data.client} onChange={e => set("client", e.target.value)} placeholder="Client" style={{ ...navInput, width: 160 }} />
         <div style={{ flex: 1 }} />
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -745,14 +815,12 @@ export default function App() {
           {saving ? "Saving..." : savedAt ? `Saved ${savedAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}` : "Saved"}
         </div>
         <button className="no-print" onClick={() => window.print()} style={{ marginLeft: 16, background: "#0f172a", color: "#ffffff", border: "none", borderRadius: 4, padding: "6px 14px", fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}>
-          <span style={{ fontSize: 13 }}>â¬</span> Download PDF
+          <span style={{ fontSize: 13 }}>⬇</span> Download PDF
         </button>
       </div>
-
-        <img src="https://designtomorrow.com/wp-content/uploads/2022/11/logo_black.png" alt="DesignTomorrow" style={{ position: "fixed", left: 20, top: "50%", transform: "translateY(-50%)", width: 80, opacity: 0.8, pointerEvents: "none", zIndex: 0 }} />
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "40px 32px 80px" }}>
 
-        {/* 01 Â· PROJECT OVERVIEW */}
+        {/* 01 · PROJECT OVERVIEW */}
         <SectionHead title="Project Overview" index={0} />
         <TwoCol>
           <StaffPicker label="Key Personnel / Project Lead" value={data.keyPersonnel} onChange={v => set("keyPersonnel", v)} />
@@ -763,7 +831,7 @@ export default function App() {
         <Field label="Contract Value" value={data.contractValue} onChange={v => set("contractValue", v)} placeholder="AED" numeric={true} />
         <PageBreak />
 
-        {/* 02 Â· PROJECT STATUS */}
+        {/* 02 · PROJECT STATUS */}
         <SectionHead title="Project Status" index={1} />
         <Field label="Current Stage & Status" value={data.projectStatus} onChange={v => set("projectStatus", v)} placeholder="Enter current stage" />
         <ProgressBar value={data.progressPct} onChange={v => set("progressPct", v)} />
@@ -773,7 +841,7 @@ export default function App() {
         </TwoCol>
         <PageBreak />
 
-        {/* 03 Â· BUDGET & FINANCIALS */}
+        {/* 03 · BUDGET & FINANCIALS */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
           <SectionHead title="Budget & Financials" index={2} />
           <button onClick={() => setHideBudget(h => !h)} style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", background: "none", border: "1px solid #e2e8f0", borderRadius: 4, color: "#94a3b8", cursor: "pointer", padding: "3px 10px", marginBottom: 20 }}>{hideBudget ? "Show" : "Hide"}</button>
@@ -808,31 +876,31 @@ export default function App() {
         </>}
         <PageBreak />
 
-        {/* 04 Â· PAYMENT STATUS */}
+        {/* 04 · PAYMENT STATUS */}
         <SectionHead title="Payment Status" index={3} />
         <CombinedPaymentTable rows={data.paymentRows} onChange={(i, field, val) => setPaymentRow(i, field, val)} />
         <PageBreak />
 
-        {/* 05 Â· PROGRAM */}
+        {/* 05 · PROGRAM */}
         <SectionHead title="Program" index={4} />
         <ProgramTable rows={data.programRows} onChange={setProgramRow} />
         <PageBreak />
 
-        {/* 06 Â· VARIATIONS & RISKS */}
+        {/* 06 · VARIATIONS & RISKS */}
         <SectionHead title="Variations & Risks" index={5} />
         <Field label="Potential Variations - Plan of Action" value={data.potentialVariations} onChange={v => set("potentialVariations", v)} type="textarea" placeholder="Note potential variations" />
         <hr style={{ border: 'none', borderTop: '1px solid #e2e8f0', margin: '0 0 24px 0' }} />
         <div><div style={styles.fieldLabel}>Critical Issues &amp; Risks</div><CriticalIssuesTable rows={data.criticalIssues} onChange={(i, field, val) => setCriticalRow(i, field, val)} /></div>
         <PageBreak />
 
-        {/* 07 Â· ACTION LIST */}
+        {/* 07 · ACTION LIST */}
         <SectionHead title="Action List" index={6} />
         <ActionTable rows={data.currentActions} onChange={(i, field, val) => setActionRow("currentActions", i, field, val)} />
 
       </div>
 
       <div style={{ borderTop: "1.5px solid #000000", padding: "16px 32px", display: "flex", justifyContent: "space-between", alignItems: "center", background: "#ffffff" }}>
-        <span style={{ fontSize: 11, color: "#cbd5e1", letterSpacing: "0.06em" }}>DT ARCHITECTURE & DESIGN Â· CONFIDENTIAL Â· INTERNAL USE ONLY</span>
+        <span style={{ fontSize: 11, color: "#cbd5e1", letterSpacing: "0.06em" }}>DT ARCHITECTURE & DESIGN · CONFIDENTIAL · INTERNAL USE ONLY</span>
         <span style={{ fontSize: 11, color: "#cbd5e1" }}>{new Date().getFullYear()}</span>
       </div>
     </div>
