@@ -130,14 +130,14 @@ const DT_STAFF = [
 
 // Single-select staff picker (Key Personnel)
 function StaffPicker({ label, value, onChange }) {
-  const [open, setOpen] = React.useState(false);
-  const [query, setQuery] = React.useState("");
-  const ref = React.useRef(null);
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const ref = useRef(null);
   const selected = DT_STAFF.find(s => s.name === value);
   const filtered = query
     ? DT_STAFF.filter(s => s.name.toLowerCase().includes(query.toLowerCase()) || s.role.toLowerCase().includes(query.toLowerCase()))
     : DT_STAFF;
-  React.useEffect(() => {
+  useEffect(() => {
     const handler = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -185,9 +185,9 @@ function StaffPicker({ label, value, onChange }) {
 
 // Multi-select staff picker (Team This Week) - shows chips
 function StaffPickerMulti({ label, value, onChange }) {
-  const [open, setOpen] = React.useState(false);
-  const [query, setQuery] = React.useState("");
-  const ref = React.useRef(null);
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const ref = useRef(null);
   const selected = value ? value.split(",").map(n => n.trim()).filter(Boolean) : [];
   const filtered = query
     ? DT_STAFF.filter(s => s.name.toLowerCase().includes(query.toLowerCase()) || s.role.toLowerCase().includes(query.toLowerCase()))
@@ -197,7 +197,7 @@ function StaffPickerMulti({ label, value, onChange }) {
     const next = idx >= 0 ? selected.filter(n => n !== name) : [...selected, name];
     onChange(next.join(", "));
   };
-  React.useEffect(() => {
+  useEffect(() => {
     const handler = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
