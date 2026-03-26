@@ -271,7 +271,39 @@ function ActionTable({ rows, onChange }) {
 }
 
 function ProgramTable({ rows, onChange }) {
-  return (<div style={{ marginBottom: 8 }}><table style={{ width: "100%", borderCollapse: "collapse" }}><thead><tr><th style={{ ...styles.th, textAlign: "left", width: "34%" }}>Stage</th><th style={{ ...styles.th, textAlign: "left" }}>Baseline Duration</th><th style={{ ...styles.th, textAlign: "left" }}>Actual Duration</th><th style={{ ...styles.th, width: 32 }}></th></tr></thead><tbody>{rows.map((row, i) => (<tr key={i}><td style={styles.td}><input value={row.stage} onChange={e => onChange(i, "stage", e.target.value)} placeholder="Stage name" style={styles.inlineInput} /></td><td style={styles.td}><input value={row.baseline} onChange={e => onChange(i, "baseline", e.target.value)} placeholder="e.g. 8 weeks" style={styles.inlineInput} /></td><td style={styles.td}><input value={row.actual} onChange={e => onChange(i, "actual", e.target.value)} placeholder="e.g. 10 weeks" style={styles.inlineInput} /></td><td style={styles.td}><button onClick={() => { const next = rows.filter((_, j) => j !== i); onChange("_replace", null, next); }} style={styles.delBtn}>×</button></td></tr>))}</tbody></table><button onClick={() => onChange("_add", null, null)} style={styles.addBtn}>+ Add stage</button></div>);
+  return (
+    <div style={{ marginBottom: 8 }}>
+      <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <thead>
+          <tr>
+            <th style={{ ...styles.th, textAlign: "left", width: "22%" }}>Stage</th>
+            <th style={{ ...styles.th, textAlign: "left", width: "13%" }}>Baseline Duration</th>
+            <th style={{ ...styles.th, textAlign: "center", width: "11%" }}>Baseline Start</th>
+            <th style={{ ...styles.th, textAlign: "center", width: "11%" }}>Baseline End</th>
+            <th style={{ ...styles.th, textAlign: "left", width: "13%" }}>Actual Duration</th>
+            <th style={{ ...styles.th, textAlign: "center", width: "11%" }}>Actual Start</th>
+            <th style={{ ...styles.th, textAlign: "center", width: "11%" }}>Actual End</th>
+            <th style={{ ...styles.th, width: 32 }}></th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, i) => (
+            <tr key={i}>
+              <td style={styles.td}><input value={row.stage} onChange={e => onChange(i, "stage", e.target.value)} placeholder="Stage name" style={styles.inlineInput} /></td>
+              <td style={styles.td}><input value={row.baseline} onChange={e => onChange(i, "baseline", e.target.value)} placeholder="e.g. 8 weeks" style={styles.inlineInput} /></td>
+              <td style={styles.td}><input value={row.baselineStart} onChange={e => onChange(i, "baselineStart", e.target.value)} placeholder="dd/mm" style={{ ...styles.inlineInput, textAlign: "center" }} /></td>
+              <td style={styles.td}><input value={row.baselineEnd} onChange={e => onChange(i, "baselineEnd", e.target.value)} placeholder="dd/mm" style={{ ...styles.inlineInput, textAlign: "center" }} /></td>
+              <td style={styles.td}><input value={row.actual} onChange={e => onChange(i, "actual", e.target.value)} placeholder="e.g. 10 weeks" style={styles.inlineInput} /></td>
+              <td style={styles.td}><input value={row.actualStart} onChange={e => onChange(i, "actualStart", e.target.value)} placeholder="dd/mm" style={{ ...styles.inlineInput, textAlign: "center" }} /></td>
+              <td style={styles.td}><input value={row.actualEnd} onChange={e => onChange(i, "actualEnd", e.target.value)} placeholder="dd/mm" style={{ ...styles.inlineInput, textAlign: "center" }} /></td>
+              <td style={styles.td}><button onClick={() => { const next = rows.filter((_, j) => j !== i); onChange("_replace", null, next); }} style={styles.delBtn}>×</button></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <button onClick={() => onChange("_add", null, null)} style={styles.addBtn}>+ Add stage</button>
+    </div>
+  );
 }
 
 function CombinedPaymentTable({ rows, onChange }) {
@@ -848,8 +880,6 @@ export default function App() {
 
         {/* 06 · VARIATIONS & RISKS */}
         <SectionHead title="Variations & Risks" index={5} />
-        <Field label="Potential Variations - Plan of Action" value={data.potentialVariations} onChange={v => set("potentialVariations", v)} type="textarea" placeholder="Note potential variations" />
-        <hr style={{ border: 'none', borderTop: '1px solid #e2e8f0', margin: '0 0 24px 0' }} />
         <div><div style={styles.fieldLabel}>Critical Issues &amp; Risks</div><CriticalIssuesTable rows={data.criticalIssues} onChange={(i, field, val) => setCriticalRow(i, field, val)} /></div>
         <PageBreak />
 
