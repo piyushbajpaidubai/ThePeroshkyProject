@@ -19,7 +19,7 @@ async function loadData() {
 async function saveData(data) {
   try {
     await fetch("/.netlify/functions/sheets", {
-      method: "POST",h
+      method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
