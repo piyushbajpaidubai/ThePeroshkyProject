@@ -76,7 +76,7 @@ function formatWeekLabel(date) {
 const defaultState = {
   projectCode: "", projectName: "", client: "",
   reportDate: new Date().toISOString().slice(0, 10),
-  keyPersonnel: "", subconsultants: "", contractStatus: "", contractValue: "",
+  keyPersonnel: "", teamThisWeek: "", subconsultants: "", contractStatus: "", contractValue: "",
   budgetStatus: "", internalBudget: "", externalBudget: "", availableBudget: "",
   actualSpent: "", invoiceIssued: "", externalSpent: "",
   projectStatus: "", progressPct: "", targetInvoice: "", invoiceDueDate: "",
@@ -424,7 +424,7 @@ function BudgetTrendChart({ budgetHistory, internalBudget, availableBudget, actu
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <div style={{ width: 24, height: 3, background: "#ef4444", borderRadius: 2 }} />
-            <span style={{ fontSize: 11, color: "#64748b", fontWeight: 600 }}>Actual Spent</span>
+            <span style={{ fontSize: 11, color: "#64748b", fontWeight: 600 }}>Actual Spent To-Date (from Moment)</span>
           </div>
         </div>
       </div>
@@ -671,6 +671,7 @@ export default function App() {
           <Field label="Key Personnel / Project Lead" value={data.keyPersonnel} onChange={v => set("keyPersonnel", v)} placeholder="Enter project lead name" />
           <div><div style={styles.fieldLabel}>Contract Status</div><div style={{ marginBottom: 14, paddingTop: 4 }}><StatusBadge value={data.contractStatus} onChange={v => set("contractStatus", v)} /></div></div>
         </TwoCol>
+        <Field label="Team This Week" value={data.teamThisWeek} onChange={v => set("teamThisWeek", v)} placeholder="Enter team members this week" />
         <Field label="Subconsultants" value={data.subconsultants} onChange={v => set("subconsultants", v)} type="textarea" placeholder="List all sub-consultants" />
         <CurrencyField label="Contract Value" value={data.contractValue} onChange={v => set("contractValue", v)} />
         <PageBreak />
@@ -696,7 +697,7 @@ export default function App() {
             <CurrencyField label="Internal Budget" value={data.internalBudget} onChange={v => set("internalBudget", v)} />
             <CurrencyField label="External Sub-Consultants Budget" value={data.externalBudget} onChange={v => set("externalBudget", v)} />
             <div style={{ marginBottom: 14 }}><div style={styles.fieldLabel}>Available Budget To-Date</div><div style={{ fontSize: 13, color: "#0f172a", padding: "4px 0", borderBottom: "1.5px solid #e2e8f0", fontWeight: 600 }}>{(() => { const pct = parseFloat((data.progressPct || "0")) || 0; const budget = parseFloat((data.internalBudget || "").replace(/[^0-9.-]/g, "")) || 0; const val = (pct / 100) * budget; return (pct === 0 && budget === 0) ? "AED" : "AED " + val.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 }); })()}</div></div>
-            <CurrencyField label="Actual Spent To-Date" value={data.actualSpent} onChange={v => set("actualSpent", v)} />
+            <CurrencyField label="Actual Spent To-Date (from Moment)" value={data.actualSpent} onChange={v => set("actualSpent", v)} />
           </TwoCol>
           <div style={{ marginBottom: 14 }}><div style={styles.fieldLabel}>Balance To-Date</div><BalanceIndicator available={String((parseFloat(data.progressPct || "0") / 100) * (parseFloat((data.internalBudget || "").replace(/[^0-9.-]/g, "")) || 0))} spent={data.actualSpent} /></div>
           <TwoCol>
