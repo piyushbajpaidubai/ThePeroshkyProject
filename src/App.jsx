@@ -347,7 +347,7 @@ function CriticalIssuesTable({ rows, onChange }) {
 }
 
 // âââ BUDGET TREND CHART âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
-function BudgetTrendChart({ budgetHistory, internalBudget, actualSpent, onManualUpdate }) {
+function BudgetTrendChart({ budgetHistory, internalBudget, availableBudget, actualSpent, onManualUpdate }) {
   const W = 820, H = 320;
   const PAD = { top: 24, right: 24, bottom: 52, left: 88 };
   const chartW = W - PAD.left - PAD.right;
