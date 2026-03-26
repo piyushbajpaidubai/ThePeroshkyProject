@@ -628,46 +628,6 @@ function StaffPickerMulti({ label, value, onChange }) {
     </div>
   );
 }
-
-
-function StaffPickerMulti({ label, value, onChange }) {
-  const [open, setOpen] = useState(false);
-  const [inputVal, setInputVal] = useState("");
-  const ref = useRef(null);
-  const selected = value ? value.split(",").map(s => s.trim()).filter(Boolean) : [];
-  useEffect(() => {
-    function handleClick(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false); }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, []);
-  const toggle = (opt) => {
-    const next = selected.includes(opt) ? selected.filter(s => s !== opt) : [...selected, opt];
-    onChange(next.join(", "));
-  };
-  const filtered = STAFF_OPTIONS.filter(o => o.toLowerCase().includes(inputVal.toLowerCase()));
-  return (
-    <div style={{ marginBottom: 14, position: "relative" }} ref={ref}>
-      {label && <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "#94a3b8", textTransform: "uppercase", marginBottom: 4 }}>{label}</div>}
-      <div onClick={() => setOpen(o => !o)} style={{ fontSize: 13, color: selected.length ? "#0f172a" : "#94a3b8", padding: "4px 0", borderBottom: "1.5px solid #e2e8f0", cursor: "pointer", minHeight: 24 }}>
-        {selected.length ? selected.join(", ") : "Select team members..."}
-      </div>
-      {open && (
-        <div style={{ position: "absolute", top: "100%", left: 0, zIndex: 200, background: "#fff", border: "1px solid #e2e8f0", borderRadius: 6, boxShadow: "0 4px 16px rgba(0,0,0,0.1)", minWidth: 260, maxHeight: 240, overflowY: "auto" }}>
-          <div style={{ padding: "8px 10px", borderBottom: "1px solid #f1f5f9" }}>
-            <input autoFocus value={inputVal} onChange={e => setInputVal(e.target.value)} placeholder="Search..." style={{ width: "100%", border: "none", outline: "none", fontSize: 12, background: "transparent" }} />
-          </div>
-          {filtered.map(opt => (
-            <div key={opt} onClick={() => toggle(opt)} style={{ padding: "8px 14px", fontSize: 13, cursor: "pointer", background: selected.includes(opt) ? "#f0f9ff" : "transparent", color: selected.includes(opt) ? "#0ea5e9" : "#0f172a", display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 11, width: 14 }}>{selected.includes(opt) ? "✓" : ""}</span>
-              {opt}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 const styles = {
   fieldLabel: { fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "#94a3b8", textTransform: "uppercase", marginBottom: 4 },
   th: { fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "#94a3b8", textTransform: "uppercase", borderBottom: "1px solid #e2e8f0", padding: "0 8px 8px 8px", textAlign: "center" },
