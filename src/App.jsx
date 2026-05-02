@@ -76,7 +76,8 @@ function formatWeekLabel(date) {
 const defaultState = {
   projectCode: "", projectName: "", client: "",
   reportDate: new Date().toISOString().slice(0, 10),
-  keyPersonnel: "", teamThisWeek: "", subconsultants: "", contractStatus: "", contractValue: "",
+  keyPersonnel: "", teamThisWeek: "", subconsultantRows: [{ name: "", contractStatus: "" }],
+  contractStatus: "", contractValue: "",
   budgetStatus: "", internalBudget: "", externalBudget: "", availableBudget: "",
   actualSpent: "", invoiceIssued: "", externalSpent: "",
   projectStatus: "", progressPct: "", targetInvoice: "", invoiceDueDate: "",
@@ -223,6 +224,26 @@ function ActionStatusBar({ value, onChange }) {
   );
 }
 
+function SubContractStatusBar({ value, onChange }) {
+  const opts = [
+    { value: "signed", label: "Signed", bg: "#22c55e", fg: "#ffffff" },
+    { value: "pending", label: "Pending", bg: "#f97316", fg: "#ffffff" },
+    { value: "in_process", label: "In-Process", bg: "#0ea5e9", fg: "#ffffff" },
+  ];
+  const sel = opts.find(o => o.value === value);
+  const bg = sel ? sel.bg : "#e2e8f0";
+  const fg = sel ? sel.fg : "#64748b";
+  return (
+    <div style={{ position: "relative", display: "inline-block" }}>
+      <select value={value || ""} onChange={e => onChange(e.target.value)} style={{ appearance: "none", background: bg, color: fg, border: "none", borderRadius: 4, padding: "3px 24px 3px 10px", fontSize: 12, fontWeight: 600, cursor: "pointer", outline: "none", minWidth: 100 }}>
+        <option value="">Select</option>
+        {opts.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+      </select>
+      <span style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", fontSize: 10, color: fg }}>v</span>
+    </div>
+  );
+}
+
 function ProgressBar({ value, onChange }) {
   const pct = Math.min(100, Math.max(0, parseInt(value) || 0));
   const color = pct < 30 ? "#f87171" : pct < 70 ? "#fbbf24" : "#34d399";
@@ -260,6 +281,34 @@ function ActionTable({ rows, onChange }) {
               <td style={styles.td}><textarea value={row.action} onChange={e => { onChange(i, "action", e.target.value); e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }} onInput={e => { e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }} placeholder="Enter action item..." style={{ ...styles.inlineInput, resize: "none", minHeight: 32, height: "auto", overflow: "hidden", lineHeight: "1.4", padding: "4px 6px", boxSizing: "border-box", display: "block", width: "100%" }} rows={1} /></td>
               <td style={styles.td}><input value={row.owner} onChange={e => onChange(i, "owner", e.target.value)} placeholder="Name" style={{ ...styles.inlineInput, textAlign: "center" }} /></td>
               <td style={styles.td}><ActionStatusBar value={row.status || ""} onChange={v => onChange(i, "status", v)} /></td>
+              <td style={styles.td}><button onClick={() => { const next = rows.filter((_, j) => j !== i); onChange("_replace", null, next); }} style={styles.delBtn}>X</button></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <button onClick={() => onChange("_add", null, null)} style={styles.addBtn}>+ Add row</button>
+    </div>
+  );
+}
+
+function SubconsultantsTable({ rows, onChange }) {
+  return (
+    <div style={{ marginBottom: 8 }}>
+      <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <thead>
+          <tr>
+            <th style={styles.th}>#</th>
+            <th style={{ ...styles.th, width: "60%", textAlign: "left" }}>Sub-Consultant</th>
+            <th style={styles.th}>Sub-Contract Status</th>
+            <th style={{ ...styles.th, width: 32 }}></th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, i) => (
+            <tr key={i}>
+              <td style={styles.tdNum}>{String(i + 1).padStart(2, "0")}</td>
+              <td style={styles.td}><input value={row.name} onChange={e => onChange(i, "name", e.target.value)} placeholder="Enter sub-consultant name..." style={{ ...styles.inlineInput, width: "100%" }} /></td>
+              <td style={styles.td}><SubContractStatusBar value={row.contractStatus || ""} onChange={v => onChange(i, "contractStatus", v)} /></td>
               <td style={styles.td}><button onClick={() => { const next = rows.filter((_, j) => j !== i); onChange("_replace", null, next); }} style={styles.delBtn}>X</button></td>
             </tr>
           ))}
@@ -1078,7 +1127,15 @@ export default function App() {
     });
   }, []);
 
-  const setPaymentRow = useCallback((i, field, val) => {
+  const setSubconsultantRow = useCallback((i, field, val) => {
+    setData(prev => {
+      if (i === "_replace") return { ...prev, subconsultantRows: val };
+      if (i === "_add") return { ...prev, subconsultantRows: [...(prev.subconsultantRows || []), { name: "", contractStatus: "" }] };
+      return { ...prev, subconsultantRows: (prev.subconsultantRows || []).map((r, j) => j === i ? { ...r, [field]: val } : r) };
+    });
+  }, []);
+
+    const setPaymentRow = useCallback((i, field, val) => {
     setData(prev => {
       if (i === "_replace") return { ...prev, paymentRows: val };
       if (i === "_add") return { ...prev, paymentRows: [...prev.paymentRows, { milestone: "", clientStatus: "", subsStatus: "" }] };
@@ -1126,7 +1183,7 @@ export default function App() {
           <div><div style={styles.fieldLabel}>Contract Status</div><div style={{ marginBottom: 14, paddingTop: 4 }}><StatusBadge value={data.contractStatus} onChange={v => set("contractStatus", v)} /></div></div>
         </TwoCol>
         <StaffPickerMulti label="Team This Week" value={data.teamThisWeek} onChange={v => set("teamThisWeek", v)} />
-        <Field label="Subconsultants" value={data.subconsultants} onChange={v => set("subconsultants", v)} type="textarea" placeholder="List all sub-consultants" />
+        <div style={{ marginBottom: 14 }}><div style={styles.fieldLabel}>Subconsultants</div><SubconsultantsTable rows={data.subconsultantRows || []} onChange={(i, field, val) => setSubconsultantRow(i, field, val)} /></div>
         <Field label="Contract Value" value={data.contractValue} onChange={v => set("contractValue", v)} placeholder="AED" numeric={true} />
         <PageBreak />
 
