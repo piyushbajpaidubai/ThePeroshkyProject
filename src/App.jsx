@@ -299,7 +299,7 @@ function SubconsultantsTable({ rows, onChange }) {
           <tr>
             <th style={styles.th}>#</th>
             <th style={{ ...styles.th, width: "60%", textAlign: "left" }}>Sub-Consultant</th>
-            <th style={styles.th}>Sub-Contract Status</th>
+            <th style={{ ...styles.th, textAlign: "center", width: "22%" }}>Sub-Contract Status</th>
             <th style={{ ...styles.th, width: 32 }}></th>
           </tr>
         </thead>
@@ -308,7 +308,7 @@ function SubconsultantsTable({ rows, onChange }) {
             <tr key={i}>
               <td style={styles.tdNum}>{String(i + 1).padStart(2, "0")}</td>
               <td style={styles.td}><input value={row.name} onChange={e => onChange(i, "name", e.target.value)} placeholder="Enter sub-consultant name..." style={{ ...styles.inlineInput, width: "100%" }} /></td>
-              <td style={styles.td}><SubContractStatusBar value={row.contractStatus || ""} onChange={v => onChange(i, "contractStatus", v)} /></td>
+              <td style={{ ...styles.td, textAlign: "center" }}><SubContractStatusBar value={row.contractStatus || ""} onChange={v => onChange(i, "contractStatus", v)} /></td>
               <td style={styles.td}><button onClick={() => { const next = rows.filter((_, j) => j !== i); onChange("_replace", null, next); }} style={styles.delBtn}>X</button></td>
             </tr>
           ))}
