@@ -739,6 +739,122 @@ function CashVarianceChart({ budgetHistory, invoiceIssued, externalSpent, actual
 }
 
 
+// --- CPI TREND CHART --------------------------------------------------------
+function CPITrendChart({ budgetHistory, onManualUpdate }) {
+  const W = 820, H = 320;
+  const PAD = { top: 24, right: 24, bottom: 52, left: 64 };
+  const chartW = W - PAD.left - PAD.right;
+  const chartH = H - PAD.top - PAD.bottom;
+  const [justUpdated, setJustUpdated] = useState(false);
+  const weeks = generateWeekLabels();
+  const dataPoints = weeks.map(weekDate => {
+    const key = getMondaySnapshotKey(weekDate);
+    const snap = budgetHistory[key];
+    return { date: weekDate, label: formatWeekLabel(weekDate), cpi: (snap && snap.cpi != null) ? snap.cpi : null };
+  });
+  const cpiVals = dataPoints.map(p => p.cpi).filter(v => v !== null);
+  const dataMax = cpiVals.length ? Math.max(...cpiVals) : 2;
+  const yMax = Math.max(dataMax * 1.2, 2);
+  const yMin = 0;
+  const yRange = yMax - yMin;
+  const xPos = i => PAD.left + (i / Math.max(weeks.length - 1, 1)) * chartW;
+  const yPos = v => PAD.top + chartH - ((v - yMin) / yRange) * chartH;
+  const yTicks = Array.from({ length: 5 }, (_, i) => parseFloat((yMin + (yRange / 4) * i).toFixed(2)));
+  const now = new Date();
+  let todayIdx = -1;
+  for (let i = weeks.length - 1; i >= 0; i--) { if (weeks[i] <= now) { todayIdx = i; break; } }
+  const currentKey = getNextMondayKey(now);
+  const currentSnap = budgetHistory[currentKey];
+  const currentWeekLabel = formatWeekLabel(keyToDate(currentKey));
+  const hasData = dataPoints.some(p => p.cpi !== null);
+  let linePath = "";
+  let started = false;
+  dataPoints.forEach((pt, i) => {
+    if (pt.cpi === null) { started = false; return; }
+    const x = xPos(i), y = yPos(pt.cpi);
+    if (!started) { linePath += `M${x},${y}`; started = true; } else { linePath += ` L${x},${y}`; }
+  });
+  const handleUpdate = () => { onManualUpdate(); setJustUpdated(true); setTimeout(() => setJustUpdated(false), 2500); };
+  return (
+    <div style={{ marginTop: 28, marginBottom: 8 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "#94a3b8", textTransform: "uppercase" }}>CPI Trend - Weekly Snapshot (Mondays 18:00)</div>
+        <div style={{ display: "flex", gap: 20, alignItems: "center" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{ width: 24, height: 3, background: "#8b5cf6", borderRadius: 2 }} />
+            <span style={{ fontSize: 11, color: "#64748b", fontWeight: 600 }}>CPI</span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{ width: 24, height: 0, borderTop: "2px dashed #94a3b8" }} />
+            <span style={{ fontSize: 11, color: "#64748b", fontWeight: 600 }}>Target = 1.0</span>
+          </div>
+        </div>
+      </div>
+      <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 8, overflow: "hidden" }}>
+        <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ display: "block" }}>
+          {yTicks.map((tick, i) => (
+            <g key={i}>
+              <line x1={PAD.left} y1={yPos(tick)} x2={PAD.left + chartW} y2={yPos(tick)} stroke="#f1f5f9" strokeWidth="1" />
+              <text x={PAD.left - 8} y={yPos(tick) + 4} textAnchor="end" style={{ fontSize: 10, fill: "#94a3b8", fontFamily: "system-ui" }}>{tick.toFixed(2)}</text>
+            </g>
+          ))}
+          {weeks.map((w, i) => {
+            if (i % Math.max(1, Math.floor(weeks.length / 8)) !== 0) return null;
+            return (<text key={i} x={xPos(i)} y={PAD.top + chartH + 20} textAnchor="middle" style={{ fontSize: 9, fill: "#94a3b8", fontFamily: "system-ui" }}>{formatWeekLabel(w)}</text>);
+          })}
+          {weeks.map((w, i) => (<line key={i} x1={xPos(i)} y1={PAD.top + chartH} x2={xPos(i)} y2={PAD.top + chartH + 4} stroke="#e2e8f0" strokeWidth="1" />))}
+          {yPos(1.0) >= PAD.top && yPos(1.0) <= PAD.top + chartH && (
+            <g>
+              <line x1={PAD.left} y1={yPos(1.0)} x2={PAD.left + chartW} y2={yPos(1.0)} stroke="#94a3b8" strokeWidth="1.5" strokeDasharray="6,4" opacity="0.7" />
+              <text x={PAD.left + chartW + 4} y={yPos(1.0) + 4} style={{ fontSize: 9, fill: "#94a3b8", fontFamily: "system-ui", fontWeight: 700 }}>1.0</text>
+            </g>
+          )}
+          {todayIdx >= 0 && (
+            <g>
+              <line x1={xPos(todayIdx)} y1={PAD.top} x2={xPos(todayIdx)} y2={PAD.top + chartH} stroke="#0ea5e9" strokeWidth="1" strokeDasharray="4,3" opacity="0.6" />
+              <text x={xPos(todayIdx) + 4} y={PAD.top + 12} style={{ fontSize: 9, fill: "#0ea5e9", fontFamily: "system-ui", fontWeight: 700 }}>Current Week</text>
+            </g>
+          )}
+          <line x1={PAD.left} y1={PAD.top} x2={PAD.left} y2={PAD.top + chartH} stroke="#e2e8f0" strokeWidth="1.5" />
+          <line x1={PAD.left} y1={PAD.top + chartH} x2={PAD.left + chartW} y2={PAD.top + chartH} stroke="#e2e8f0" strokeWidth="1.5" />
+          <text x={16} y={PAD.top + chartH / 2} textAnchor="middle" transform={`rotate(-90, 16, ${PAD.top + chartH / 2})`} style={{ fontSize: 10, fill: "#94a3b8", fontFamily: "system-ui", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase" }}>CPI</text>
+          <text x={PAD.left + chartW / 2} y={H - 6} textAnchor="middle" style={{ fontSize: 10, fill: "#94a3b8", fontFamily: "system-ui", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase" }}>Weeks</text>
+          {hasData && (
+            <>
+              <path d={linePath} fill="none" stroke="#8b5cf6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              {dataPoints.map((pt, i) => pt.cpi !== null && (
+                <g key={`cpi-${i}`}>
+                  <circle cx={xPos(i)} cy={yPos(pt.cpi)} r={4} fill={pt.cpi >= 1 ? "#22c55e" : "#ef4444"} stroke="#ffffff" strokeWidth="1.5" />
+                  <title>CPI - {pt.label}: {pt.cpi.toFixed(2)}</title>
+                </g>
+              ))}
+            </>
+          )}
+          {!hasData && (
+            <text x={W / 2} y={H / 2} textAnchor="middle" style={{ fontSize: 12, fill: "#cbd5e1", fontFamily: "system-ui", fontWeight: 500 }}>
+              Data captured every Monday at 18:00 - click Update to record now
+            </text>
+          )}
+        </svg>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 12, marginTop: 10 }}>
+        {justUpdated && (
+          <span style={{ fontSize: 11, color: "#10b981", fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
+            <span style={{ fontSize: 13 }}>OK</span> Chart updated for week of {currentWeekLabel}
+          </span>
+        )}
+        {currentSnap && !justUpdated && currentSnap.cpi != null && (
+          <span style={{ fontSize: 11, color: "#94a3b8" }}>
+            Week of {currentWeekLabel}: CPI {currentSnap.cpi.toFixed(2)}
+          </span>
+        )}
+        <button onClick={handleUpdate} style={{ background: "#0f172a", color: "#ffffff", border: "none", borderRadius: 4, padding: "6px 16px", fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
+          <span style={{ fontSize: 12 }}>Refresh</span> Update Chart
+        </button>
+      </div>
+    </div>
+  );
+}
 const STAFF_OPTIONS = [
   { name: "Dara John Towhidi", photo: "https://Project Dashboard.com/wp-content/uploads/2023/08/Dara.jpg" },
   { name: "Maya", photo: "https://Project Dashboard.com/wp-content/uploads/2024/08/Maya.jpg" },
@@ -938,6 +1054,7 @@ export default function App() {
         externalSpent: (parseFloat(prev.progressPct || "0") / 100) * (parseFloat((prev.externalBudget || "").replace(/[^0-9.-]/g, "")) || 0),
         ts: now.toISOString(),
         manuallyUpdated: true,
+        cpi: (() => { const parseV = v => parseFloat((v || "").replace(/[^0-9.-]/g, "")) || 0; const earned = parseV(prev.contractValue) * (parseV(prev.progressPct) / 100); const extSpent = (parseFloat(prev.progressPct || "0") / 100) * (parseFloat((prev.externalBudget || "").replace(/[^0-9.-]/g, "")) || 0); const totalSpent = extSpent + parseV(prev.actualSpent); return (totalSpent > 0) ? earned / totalSpent : null; })(),
       };
       return { ...prev, budgetHistory: { ...(prev.budgetHistory || {}), [key]: snap } };
     });
@@ -1065,6 +1182,11 @@ export default function App() {
               (parseFloat((data.externalBudget || "").replace(/[^0-9.-]/g, "")) || 0)
             )}
             actualSpent={data.actualSpent}
+            onManualUpdate={handleManualUpdate}
+          />
+          {/* CPI TREND CHART */}
+          <CPITrendChart
+            budgetHistory={data.budgetHistory || {}}
             onManualUpdate={handleManualUpdate}
           />
         </>}
