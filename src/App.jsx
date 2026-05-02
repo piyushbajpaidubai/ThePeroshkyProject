@@ -203,11 +203,11 @@ function RiskStatusBar({ value, onChange }) {
 
 function ActionStatusBar({ value, onChange }) {
   const opts = [
+    { value: "done", label: "Done", bg: "#22c55e", fg: "#ffffff" },
     { value: "pending", label: "Pending", bg: "#f97316", fg: "#ffffff" },
+    { value: "on_going", label: "On Going", bg: "#0ea5e9", fg: "#ffffff" },
     { value: "delayed", label: "Delayed", bg: "#ef4444", fg: "#ffffff" },
-    { value: "on_track", label: "On-Track", bg: "#22c55e", fg: "#ffffff" },
     { value: "hold", label: "Hold", bg: "#3b82f6", fg: "#ffffff" },
-    { value: "closed", label: "Closed", bg: "#9ca3af", fg: "#ffffff" },
   ];
   const sel = opts.find(o => o.value === value);
   const bg = sel ? sel.bg : "#e2e8f0";
