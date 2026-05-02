@@ -291,11 +291,11 @@ function ProgramTable({ rows, onChange }) {
             <tr key={i}>
               <td style={styles.td}><input value={row.stage} onChange={e => onChange(i, "stage", e.target.value)} placeholder="Stage name" style={styles.inlineInput} /></td>
               <td style={styles.td}><input value={row.baseline} onChange={e => onChange(i, "baseline", e.target.value)} placeholder="e.g. 8 weeks" style={styles.inlineInput} /></td>
-              <td style={styles.td}><input value={row.baselineStart} onChange={e => onChange(i, "baselineStart", e.target.value)} placeholder="dd/mm" style={{ ...styles.inlineInput, textAlign: "center" }} /></td>
-              <td style={styles.td}><input value={row.baselineEnd} onChange={e => onChange(i, "baselineEnd", e.target.value)} placeholder="dd/mm" style={{ ...styles.inlineInput, textAlign: "center" }} /></td>
+              <td style={styles.td}><input type="date" value={row.baselineStart} onChange={e => onChange(i, "baselineStart", e.target.value)} style={{ ...styles.inlineInput, textAlign: "center", cursor: "pointer", colorScheme: "light", minWidth: 36 }} /></td>
+              <td style={styles.td}><input type="date" value={row.baselineEnd} onChange={e => onChange(i, "baselineEnd", e.target.value)} style={{ ...styles.inlineInput, textAlign: "center", cursor: "pointer", colorScheme: "light", minWidth: 36 }} /></td>
               <td style={styles.td}><input value={row.actual} onChange={e => onChange(i, "actual", e.target.value)} placeholder="e.g. 10 weeks" style={styles.inlineInput} /></td>
-              <td style={styles.td}><input value={row.actualStart} onChange={e => onChange(i, "actualStart", e.target.value)} placeholder="dd/mm" style={{ ...styles.inlineInput, textAlign: "center" }} /></td>
-              <td style={styles.td}><input value={row.actualEnd} onChange={e => onChange(i, "actualEnd", e.target.value)} placeholder="dd/mm" style={{ ...styles.inlineInput, textAlign: "center" }} /></td>
+              <td style={styles.td}><input type="date" value={row.actualStart} onChange={e => onChange(i, "actualStart", e.target.value)} style={{ ...styles.inlineInput, textAlign: "center", cursor: "pointer", colorScheme: "light", minWidth: 36 }} /></td>
+              <td style={styles.td}><input type="date" value={row.actualEnd} onChange={e => onChange(i, "actualEnd", e.target.value)} style={{ ...styles.inlineInput, textAlign: "center", cursor: "pointer", colorScheme: "light", minWidth: 36 }} /></td>
               <td style={styles.td}><button onClick={() => { const next = rows.filter((_, j) => j !== i); onChange("_replace", null, next); }} style={styles.delBtn}>X</button></td>
             </tr>
           ))}
