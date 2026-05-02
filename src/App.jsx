@@ -740,33 +740,33 @@ function CashVarianceChart({ budgetHistory, invoiceIssued, externalSpent, actual
 
 
 const STAFF_OPTIONS = [
-  { name: "Dara John Towhidi", photo: "https://designtomorrow.com/wp-content/uploads/2023/08/Dara.jpg" },
-  { name: "Maya", photo: "https://designtomorrow.com/wp-content/uploads/2024/08/Maya.jpg" },
-  { name: "Munehiko", photo: "https://designtomorrow.com/wp-content/uploads/2025/10/Mune.png" },
-  { name: "Luca", photo: "https://designtomorrow.com/wp-content/uploads/2023/08/Luca.jpg" },
-  { name: "Nacho", photo: "https://designtomorrow.com/wp-content/uploads/2026/03/Gemini_Generated_Image_zazx1tzazx1tzazx.png" },
-  { name: "Fay", photo: "https://designtomorrow.com/wp-content/uploads/2026/02/Fay-BW-revised.png" },
-  { name: "George", photo: "https://designtomorrow.com/wp-content/uploads/2023/10/George.jpg" },
-  { name: "Ibrahim", photo: "https://designtomorrow.com/wp-content/uploads/2026/03/Ibrahim.png" },
-  { name: "Bruno", photo: "https://designtomorrow.com/wp-content/uploads/2026/02/Bruno-gemini.png" },
-  { name: "Alexander", photo: "https://designtomorrow.com/wp-content/uploads/2026/03/Alex-2-1.png" },
-  { name: "Arian", photo: "https://designtomorrow.com/wp-content/uploads/2023/08/Arian.jpg" },
-  { name: "Dina", photo: "https://designtomorrow.com/wp-content/uploads/2025/06/Dina_Website-scaled.jpg" },
-  { name: "Karim", photo: "https://designtomorrow.com/wp-content/uploads/2025/06/Karim_ForWebsite-scaled.jpg" },
-  { name: "Carlo Alberto", photo: "https://designtomorrow.com/wp-content/uploads/2024/09/Carlo.jpg" },
-  { name: "Alvaro", photo: "https://designtomorrow.com/wp-content/uploads/2025/12/Alvaro-NEW.png" },
-  { name: "Salvador", photo: "https://designtomorrow.com/wp-content/uploads/2025/10/salva.png" },
-  { name: "Saanchi", photo: "https://designtomorrow.com/wp-content/uploads/2024/08/Saanchi.jpg" },
-  { name: "Yara", photo: "https://designtomorrow.com/wp-content/uploads/2024/08/Yara.jpg" },
-  { name: "Tejas", photo: "https://designtomorrow.com/wp-content/uploads/2025/12/Tejas_BNW.png" },
-  { name: "Sapta", photo: "https://designtomorrow.com/wp-content/uploads/2026/03/Sapta.png" },
-  { name: "Hamza", photo: "https://designtomorrow.com/wp-content/uploads/2026/03/IMG_5206-1.png" },
-  { name: "Nadim", photo: "https://designtomorrow.com/wp-content/uploads/2026/02/Nadim-New.png" },
-  { name: "Joan", photo: "https://designtomorrow.com/wp-content/uploads/2025/10/Joan-2.png" },
-  { name: "Yomna", photo: "https://designtomorrow.com/wp-content/uploads/2026/02/Yomna-resized-1.png" },
-  { name: "Luisa", photo: "https://designtomorrow.com/wp-content/uploads/2025/10/Luisa.png" },
-  { name: "Shell", photo: "https://designtomorrow.com/wp-content/uploads/2026/03/Shell-1.png" },
-  { name: "Melissa", photo: "https://designtomorrow.com/wp-content/uploads/2025/10/Meli.png" },
+  { name: "Dara John Towhidi", photo: "https://Project Dashboard.com/wp-content/uploads/2023/08/Dara.jpg" },
+  { name: "Maya", photo: "https://Project Dashboard.com/wp-content/uploads/2024/08/Maya.jpg" },
+  { name: "Munehiko", photo: "https://Project Dashboard.com/wp-content/uploads/2025/10/Mune.png" },
+  { name: "Luca", photo: "https://Project Dashboard.com/wp-content/uploads/2023/08/Luca.jpg" },
+  { name: "Nacho", photo: "https://Project Dashboard.com/wp-content/uploads/2026/03/Gemini_Generated_Image_zazx1tzazx1tzazx.png" },
+  { name: "Fay", photo: "https://Project Dashboard.com/wp-content/uploads/2026/02/Fay-BW-revised.png" },
+  { name: "George", photo: "https://Project Dashboard.com/wp-content/uploads/2023/10/George.jpg" },
+  { name: "Ibrahim", photo: "https://Project Dashboard.com/wp-content/uploads/2026/03/Ibrahim.png" },
+  { name: "Bruno", photo: "https://Project Dashboard.com/wp-content/uploads/2026/02/Bruno-gemini.png" },
+  { name: "Alexander", photo: "https://Project Dashboard.com/wp-content/uploads/2026/03/Alex-2-1.png" },
+  { name: "Arian", photo: "https://Project Dashboard.com/wp-content/uploads/2023/08/Arian.jpg" },
+  { name: "Dina", photo: "https://Project Dashboard.com/wp-content/uploads/2025/06/Dina_Website-scaled.jpg" },
+  { name: "Karim", photo: "https://Project Dashboard.com/wp-content/uploads/2025/06/Karim_ForWebsite-scaled.jpg" },
+  { name: "Carlo Alberto", photo: "https://Project Dashboard.com/wp-content/uploads/2024/09/Carlo.jpg" },
+  { name: "Alvaro", photo: "https://Project Dashboard.com/wp-content/uploads/2025/12/Alvaro-NEW.png" },
+  { name: "Salvador", photo: "https://Project Dashboard.com/wp-content/uploads/2025/10/salva.png" },
+  { name: "Saanchi", photo: "https://Project Dashboard.com/wp-content/uploads/2024/08/Saanchi.jpg" },
+  { name: "Yara", photo: "https://Project Dashboard.com/wp-content/uploads/2024/08/Yara.jpg" },
+  { name: "Tejas", photo: "https://Project Dashboard.com/wp-content/uploads/2025/12/Tejas_BNW.png" },
+  { name: "Sapta", photo: "https://Project Dashboard.com/wp-content/uploads/2026/03/Sapta.png" },
+  { name: "Hamza", photo: "https://Project Dashboard.com/wp-content/uploads/2026/03/IMG_5206-1.png" },
+  { name: "Nadim", photo: "https://Project Dashboard.com/wp-content/uploads/2026/02/Nadim-New.png" },
+  { name: "Joan", photo: "https://Project Dashboard.com/wp-content/uploads/2025/10/Joan-2.png" },
+  { name: "Yomna", photo: "https://Project Dashboard.com/wp-content/uploads/2026/02/Yomna-resized-1.png" },
+  { name: "Luisa", photo: "https://Project Dashboard.com/wp-content/uploads/2025/10/Luisa.png" },
+  { name: "Shell", photo: "https://Project Dashboard.com/wp-content/uploads/2026/03/Shell-1.png" },
+  { name: "Melissa", photo: "https://Project Dashboard.com/wp-content/uploads/2025/10/Meli.png" },
 ];
 
 function StaffPicker({ label, value, onChange }) {
@@ -982,7 +982,7 @@ export default function App() {
   return (
     <div style={{ position: "relative", minHeight: "100vh", background: "#f8fafc", fontFamily: "'DM Sans', system-ui, sans-serif", color: "#0f172a" }}>
       <div style={{ position: "sticky", top: 0, zIndex: 100, background: "#ffffff", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", padding: "0 32px", height: 52, gap: 20 }}>
-        <div style={{ fontWeight: 800, fontSize: 15, letterSpacing: "0.05em", color: "#0f172a", borderRight: "1px solid #e2e8f0", paddingRight: 20, marginRight: 4 }}>DesignTomorrow</div>
+        <div style={{ fontWeight: 800, fontSize: 15, letterSpacing: "0.05em", color: "#0f172a", borderRight: "1px solid #e2e8f0", paddingRight: 20, marginRight: 4 }}>Project Dashboard</div>
         <input value={data.projectCode} onChange={e => set("projectCode", e.target.value)} placeholder="PROJECT CODE" style={{ ...navInput, width: 110, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }} />
         <span style={{ color: "#e2e8f0" }}>.</span>
         <input value={data.projectName} onChange={e => set("projectName", e.target.value)} placeholder="Project Name" style={{ ...navInput, width: 200 }} />
