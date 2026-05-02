@@ -904,35 +904,7 @@ function CPITrendChart({ budgetHistory, onManualUpdate }) {
     </div>
   );
 }
-const STAFF_OPTIONS = [
-  { name: "Dara John Towhidi", photo: "https://Project Dashboard.com/wp-content/uploads/2023/08/Dara.jpg" },
-  { name: "Maya", photo: "https://Project Dashboard.com/wp-content/uploads/2024/08/Maya.jpg" },
-  { name: "Munehiko", photo: "https://Project Dashboard.com/wp-content/uploads/2025/10/Mune.png" },
-  { name: "Luca", photo: "https://Project Dashboard.com/wp-content/uploads/2023/08/Luca.jpg" },
-  { name: "Nacho", photo: "https://Project Dashboard.com/wp-content/uploads/2026/03/Gemini_Generated_Image_zazx1tzazx1tzazx.png" },
-  { name: "Fay", photo: "https://Project Dashboard.com/wp-content/uploads/2026/02/Fay-BW-revised.png" },
-  { name: "George", photo: "https://Project Dashboard.com/wp-content/uploads/2023/10/George.jpg" },
-  { name: "Ibrahim", photo: "https://Project Dashboard.com/wp-content/uploads/2026/03/Ibrahim.png" },
-  { name: "Bruno", photo: "https://Project Dashboard.com/wp-content/uploads/2026/02/Bruno-gemini.png" },
-  { name: "Alexander", photo: "https://Project Dashboard.com/wp-content/uploads/2026/03/Alex-2-1.png" },
-  { name: "Arian", photo: "https://Project Dashboard.com/wp-content/uploads/2023/08/Arian.jpg" },
-  { name: "Dina", photo: "https://Project Dashboard.com/wp-content/uploads/2025/06/Dina_Website-scaled.jpg" },
-  { name: "Karim", photo: "https://Project Dashboard.com/wp-content/uploads/2025/06/Karim_ForWebsite-scaled.jpg" },
-  { name: "Carlo Alberto", photo: "https://Project Dashboard.com/wp-content/uploads/2024/09/Carlo.jpg" },
-  { name: "Alvaro", photo: "https://Project Dashboard.com/wp-content/uploads/2025/12/Alvaro-NEW.png" },
-  { name: "Salvador", photo: "https://Project Dashboard.com/wp-content/uploads/2025/10/salva.png" },
-  { name: "Saanchi", photo: "https://Project Dashboard.com/wp-content/uploads/2024/08/Saanchi.jpg" },
-  { name: "Yara", photo: "https://Project Dashboard.com/wp-content/uploads/2024/08/Yara.jpg" },
-  { name: "Tejas", photo: "https://Project Dashboard.com/wp-content/uploads/2025/12/Tejas_BNW.png" },
-  { name: "Sapta", photo: "https://Project Dashboard.com/wp-content/uploads/2026/03/Sapta.png" },
-  { name: "Hamza", photo: "https://Project Dashboard.com/wp-content/uploads/2026/03/IMG_5206-1.png" },
-  { name: "Nadim", photo: "https://Project Dashboard.com/wp-content/uploads/2026/02/Nadim-New.png" },
-  { name: "Joan", photo: "https://Project Dashboard.com/wp-content/uploads/2025/10/Joan-2.png" },
-  { name: "Yomna", photo: "https://Project Dashboard.com/wp-content/uploads/2026/02/Yomna-resized-1.png" },
-  { name: "Luisa", photo: "https://Project Dashboard.com/wp-content/uploads/2025/10/Luisa.png" },
-  { name: "Shell", photo: "https://Project Dashboard.com/wp-content/uploads/2026/03/Shell-1.png" },
-  { name: "Melissa", photo: "https://Project Dashboard.com/wp-content/uploads/2025/10/Meli.png" },
-];
+const STAFF_OPTIONS = [];
 
 function StaffPicker({ label, value, onChange }) {
   const [open, setOpen] = useState(false);
