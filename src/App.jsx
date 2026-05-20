@@ -22,7 +22,7 @@ async function saveData(data) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
-    });
+    });h
   } catch {}
 }
 
@@ -256,7 +256,7 @@ function SectionHead({ title, index }) {
   return (
     <div style={{ marginBottom: 20 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", color: "#94a3b8", textTransform: "uppercase", whiteSpace: "nowrap" }}>
+        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", color: "#000000", textTransform: "uppercase", whiteSpace: "nowrap" }}>
           {String(index + 1).padStart(2, "0")} . {title}
         </div>
         <div style={{ flex: 1, height: 1, background: "#e2e8f0" }} />
