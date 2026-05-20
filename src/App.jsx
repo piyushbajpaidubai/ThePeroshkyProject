@@ -906,69 +906,7 @@ function CPITrendChart({ budgetHistory, onManualUpdate }) {
 }
 const STAFF_OPTIONS = [];
 
-function StaffPicker({ label, value, onChange }) {
-  const [open, setOpen] = useState(false);
-  const [manualInput, setManualInput] = useState("");
-  const ref = useRef(null);
-  useEffect(() => {
-    function handleClick(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false); }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, []);
-  const selected = STAFF_OPTIONS.find(o => o.name === value);
-  const handleManualKeyDown = (e) => {
-    if (e.key === "Enter" && manualInput.trim()) {
-      e.preventDefault();
-      onChange(manualInput.trim());
-      setManualInput("");
-      setOpen(false);
-    }
-  };
-  return (
-    <div style={{ marginBottom: 14, position: "relative" }} ref={ref}>
-      {label && <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "#94a3b8", textTransform: "uppercase", marginBottom: 4 }}>{label}</div>}
-      <div onClick={() => setOpen(o => !o)} style={{ fontSize: 13, color: value ? "#0f172a" : "#94a3b8", padding: "4px 0", borderBottom: "1.5px solid #e2e8f0", cursor: "pointer", minHeight: 28, display: "flex", alignItems: "center", gap: 6 }}>
-        {selected ? (
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: "#f0f9ff", borderRadius: 99, padding: "2px 8px 2px 4px", fontSize: 12 }}>
-            <img src={selected.photo} alt={value} style={{ width: 18, height: 18, borderRadius: "50%", objectFit: "cover" }} />
-            {value}
-          </span>
-        ) : value ? (
-          <span style={{ fontSize: 12, color: "#0f172a" }}>{value}</span>
-        ) : "Select person..."}
-        {value && <span onClick={(e) => { e.stopPropagation(); onChange(""); setManualInput(""); }} style={{ marginLeft: "auto", fontSize: 11, color: "#94a3b8", cursor: "pointer" }}>&#x2715;</span>}
-      </div>
-      {open && (
-        <div style={{ position: "absolute", top: "100%", left: 0, zIndex: 200, background: "#fff", border: "1px solid #e2e8f0", borderRadius: 6, boxShadow: "0 4px 16px rgba(0,0,0,0.1)", minWidth: 240, maxHeight: 260, overflowY: "auto" }}>
-          <div style={{ padding: "8px 10px", borderBottom: "1px solid #f1f5f9" }}>
-            <input
-              autoFocus
-              value={manualInput}
-              onChange={e => setManualInput(e.target.value)}
-              onKeyDown={handleManualKeyDown}
-              placeholder="Type a name & press Enter..."
-              style={{ width: "100%", border: "none", outline: "none", fontSize: 12, background: "transparent" }}
-            />
-          </div>
-          {STAFF_OPTIONS.map(opt => (
-            <div key={opt.name} onClick={() => { onChange(opt.name); setOpen(false); }} style={{ padding: "7px 12px", fontSize: 13, cursor: "pointer", background: value === opt.name ? "#f0f9ff" : "transparent", color: value === opt.name ? "#0f172a" : "#94a3b8", display: "flex", alignItems: "center", gap: 8 }}>
-              <img src={opt.photo} alt={opt.name} style={{ width: 20, height: 20, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
-              {opt.name}
-            </div>
-          ))}
-          {STAFF_OPTIONS.length === 0 && (
-            <div style={{ padding: "7px 12px", fontSize: 12, color: "#94a3b8" }}>Type a name above and press Enter</div>
-          )}
-          <div onClick={() => { onChange(""); setOpen(false); }} style={{ padding: "7px 12px", fontSize: 12, cursor: "pointer", color: "#94a3b8", borderTop: "1px solid #f1f5f9" }}>
-            Clear
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function StaffPickerMulti({ label, value, onChange }) {
+function StaffPicker({ label, value, onChange }) {  return (    <div style={{ marginBottom: 14 }}>      {label && (        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "#94a3b8", textTransform: "uppercase", marginBottom: 4 }}>          {label}        </div>      )}      <input        type="text"        value={value || ""}        onChange={e => onChange(e.target.value)}        style={{ width: "100%", fontSize: 13, color: "#0f172a", padding: "4px 0", border: "none", borderBottom: "1.5px solid #e2e8f0", outline: "none", background: "transparent" }}      />    </div>  );}function StaffPickerMulti({ label, value, onChange }) {
   const [open, setOpen] = useState(false);
   const [inputVal, setInputVal] = useState("");
   const ref = useRef(null);
